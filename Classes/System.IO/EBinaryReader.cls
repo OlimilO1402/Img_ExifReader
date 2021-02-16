@@ -26,7 +26,7 @@ Public Property Get ReadEndianness() As Endianness
 End Property
 Public Property Let ReadEndianness(ByVal Value As Endianness)
     m_en = Value
-    MsgBox Endianness_ToStr(m_en)
+    Debug.Print Endianness_ToStr(m_en)
 End Property
 
 Public Function ReadInt16(Optional ByVal pos As Long = -1) As Integer

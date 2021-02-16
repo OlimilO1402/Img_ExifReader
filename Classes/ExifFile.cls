@@ -52,7 +52,7 @@ Try: On Error GoTo Finally
         Exit Function
     End If
     
-    OffsetIFHeader = Align4(OffsetExif + Len(MExif.C_ExifHeader))           'must be a multiple of 4 +1!
+    OffsetIFHeader = Align4(OffsetExif + Len(MExif.C_ExifHeader))             'must be a multiple of 4 +1!
     If OffsetIFHeader >= 0 Then _
         Read = ReadIFHeader(m_IFHeader, FNr, OffsetIFHeader)
         Read = ReadIFD(m_IFD_0, FNr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
@@ -104,10 +104,8 @@ Try: On Error GoTo Finally
     OffsetIFHeader = Align4(OffsetExif + Len(MExif.C_ExifHeader))           'must be a multiple of 4 +1!
     If OffsetIFHeader >= 0 Then _
         Read = ReadIFHeader(m_IFHeader, ebr, OffsetIFHeader)
-    
-    ebr.ReadEndianness = MExif.IFHeader_Endianness(m_IFHeader)
-    
-        Read = ReadIFD(m_IFD_0, ebr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
+        
+    Read = ReadIFD(m_IFD_0, ebr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
     
     OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, itExifIFDOffset)
     If OffsetIFDExif <> 0 Then _
@@ -156,23 +154,23 @@ End Property
 Public Function ToStr() As String
     Dim s As String
 Try: On Error GoTo Catch
-    If m_IFD_0.count > 0 Then
+    If m_IFD_0.Count > 0 Then
         s = s & "IFD_0" & vbCrLf & "=====" & vbCrLf
         s = s & MExif.IFD_ToStr(m_IFD_0)
     End If
-    If m_IFD_Exif.count > 0 Then
+    If m_IFD_Exif.Count > 0 Then
         s = s & "IFD_Exif" & vbCrLf & "========" & vbCrLf
         s = s & MTagExif.IFDExif_ToStr(m_IFD_Exif)
     End If
-    If m_IFD_GPS.count > 0 Then
+    If m_IFD_GPS.Count > 0 Then
         s = s & "IFD_GPS" & vbCrLf & "=======" & vbCrLf
         s = s & MTagGPS.IFDGPS_ToStr(m_IFD_GPS)
     End If
-    If m_IFD_Interop.count > 0 Then
+    If m_IFD_Interop.Count > 0 Then
         s = s & "IFD_Interop" & vbCrLf & "===========" & vbCrLf
         s = s & MExif.IFD_ToStr(m_IFD_Interop)
     End If
-    If m_IFD_1.count > 0 Then
+    If m_IFD_1.Count > 0 Then
         s = s & "IFD_1" & vbCrLf & "=====" & vbCrLf
         s = s & MExif.IFD_ToStr(m_IFD_1)
     End If

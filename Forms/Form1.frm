@@ -59,15 +59,15 @@ Private m_IFFile As TaggedImageFile
 
 Private Sub Form_Load()
     'TBFileName = "\\SOLS_DS\Daten\Stuff_saves\Bilder\ASUS ZenUI_2020-07\2020\P_20200117_092514.jpg"
-    Dim p   As String:     p = App.Path & "\Exif.org\examples\"
+    Dim p   As String:     p = App.Path & "\Exif.org\examples\MotorolaBigEndian\"
     Dim fnm As String
     
-    fnm = "canon-ixus.jpg"
+    'fnm = "canon-ixus.jpg"
     'fnm = "Canon-PowerShotA40.jpg"
     'fnm = "canon-powershota5.jpg" 'nur JFIF keine Exif-daten
     'fnm = "Canon-PowerShot-S5-IS.JPG"
     'fnm = "fujifilm-dx10.jpg"
-    'fnm = "fujifilm-finepix40i.jpg" 'Motorola big endian Integer
+    fnm = "fujifilm-finepix40i.jpg" 'Motorola big endian Integer
     'fnm = "fujifilm-mx1700.jpg"
     'fnm = "kodak-dc210.jpg" 'Motorola big endian Integer
     'fnm = "kodak-dc240.jpg" 'Motorola big endian Integer
@@ -118,7 +118,7 @@ Private Sub Form_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integ
 End Sub
 Private Sub OnOLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Not Data.GetFormat(vbCFFiles) Then Exit Sub
-    If Data.Files.count = 0 Then Exit Sub
+    If Data.Files.Count = 0 Then Exit Sub
     TBFileName.Text = Data.Files(1)
     BtnRead.Value = True
 End Sub

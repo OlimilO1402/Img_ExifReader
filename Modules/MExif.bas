@@ -3,7 +3,8 @@ Option Explicit
 Public Type IFHeader
 '8 Bytes
     ByteOrder(0 To 1) As Byte '&H4949 = "II" (Intel little endian) oder &H4D4D = "MM" (Motorola big endian)
-    IFId(0 To 1)      As Byte ' = &H2A00 oder &H002A = 42 little oder big endian
+    'IFId(0 To 1)      As Byte ' = &H2A00 oder &H002A = 42 little oder big endian
+    IFId01            As Integer ' = &H2A00 oder &H002A = 42 little oder big endian
     OffsetIFD0        As Long 'die Dateiposition der IFD-0-Struktur
 End Type
 Public Enum Endianness 'ByteOrder
@@ -136,8 +137,13 @@ Public Function ReadIFHeader(ByRef this As IFHeader, _
                              ByVal ebr As EBinaryReader, _
                              ByVal OffsetIFHeader As Long) As Boolean
 Try: On Error GoTo Catch
+    'Halt, so ist das Käse!
+    'man muss zuerst die ersten2bytes die die endianness angeben lesen, und dann erst die folgenden bytes lesen
     'ebr.BaseStream.Position = OffsetIFHeader + 1
-    ebr.ReadBytes VarPtr(this), LenB(this), OffsetIFHeader + 1
+    ebr.ReadByteBuf this.ByteOrder, OffsetIFHeader + 1
+    ebr.ReadEndianness = MExif.IFHeader_Endianness(this)
+    this.IFId01 = ebr.ReadInt16
+    this.OffsetIFD0 = ebr.ReadInt32
     ReadIFHeader = True
     Exit Function
 Catch: ErrHandler "ReadIFHeader"
@@ -172,9 +178,10 @@ Public Property Get IFHeader_IsEqual(this As IFHeader, other As IFHeader) As Boo
     With this
         B = .ByteOrder(0) = other.ByteOrder(0): If Not B Then Exit Property
         B = .ByteOrder(1) = other.ByteOrder(1): If Not B Then Exit Property
-        B = .IFId(0) = other.IFId(0): If Not B Then Exit Property
-        B = .IFId(1) = other.IFId(1): If Not B Then Exit Property
-        B = .OffsetIFD0 = other.OffsetIFD0: If Not B Then Exit Property
+        B = .IFId01 = other.IFId01:             If Not B Then Exit Property
+        'B = .IFId01(0) = other.IFId(0): If Not B Then Exit Property
+        'B = .IFId(1) = other.IFId(1): If Not B Then Exit Property
+        B = .OffsetIFD0 = other.OffsetIFD0:     If Not B Then Exit Property
     End With
 End Property
 ' ^ ############################## ^ '    IFHeader    ' ^ ############################## ^ '
@@ -216,11 +223,24 @@ Try: On Error GoTo Catch
         ReDim .Entries(0 To .Count - 1)
         Dim p As Long
         Dim bl As Long
+        
+        
+'IFDEntry
+'    Tag         As Integer ' 2 ' Tag is an enum and contains the meaning of the data see MTagIF, MTagExif, MTagGPD
+'    DataType    As Integer ' 2 ' As ExifType aber dann wäre es standardmäßig 32bit
+'    Count       As Long    ' 4 ' Number of Values
+'    ValueOffset As Long    ' 4 ' Value für IFDataType 1,3,4,9, Offset for 2,5,10
+        
+        
         For i = 0 To .Count - 1
-            p = VarPtr(.Entries(i).Entry)
-            bl = LenB(.Entries(i).Entry)
+            .Entries(i).Entry.Tag = ebr.ReadInt16
+            .Entries(i).Entry.DataType = ebr.ReadInt16
+            .Entries(i).Entry.Count = ebr.ReadInt32
+            .Entries(i).Entry.ValueOffset = ebr.ReadInt32
+            'p = VarPtr(.Entries(i).Entry)
+            'bl = LenB(.Entries(i).Entry)
             'ebr.ReadBytes VarPtr(.Entries(i).Entry), LenB(.Entries(i).Entry)
-            ebr.ReadBytes p, bl
+            'ebr.ReadBytes p, bl
             'Get FNr, , .Entries(i).Entry
         Next
         'Get FNr, , .OffsetNextIFD
