@@ -61,18 +61,18 @@ End Property
 Private Sub Stream_Read(ByVal pDst As Long, ByVal BytLength As Long)
 Try: On Error GoTo Catch
     If pDst = 0 Or BytLength = 0 Then Exit Sub
-    ReDim bytBuffer(0 To BytLength - 1) As Byte
-    Get m_FNr, , bytBuffer
-    RtlMoveMemory ByVal pDst, bytBuffer(0), BytLength
+    ReDim bytbuffer(0 To BytLength - 1) As Byte
+    Get m_FNr, , bytbuffer
+    RtlMoveMemory ByVal pDst, bytbuffer(0), BytLength
     Exit Sub
 Catch: ErrHandler "Read"
 End Sub
 Private Sub Stream_WWrite(ByVal pSrc As Long, ByVal BytLength As Long)
 Try: On Error GoTo Catch
     If pSrc = 0 Or BytLength = 0 Then Exit Sub
-    ReDim bytBuffer(0 To BytLength - 1) As Byte
-    RtlMoveMemory bytBuffer(0), ByVal pSrc, BytLength
-    Put m_FNr, , bytBuffer(0)
+    ReDim bytbuffer(0 To BytLength - 1) As Byte
+    RtlMoveMemory bytbuffer(0), ByVal pSrc, BytLength
+    Put m_FNr, , bytbuffer(0)
     Exit Sub
 Catch: ErrHandler "Write"
 End Sub
@@ -283,9 +283,7 @@ Try: On Error GoTo Catch
     End Select
     'Stream_OOpen = True
     Exit Sub
-Catch:
-    'MsgBox "Error: " & CStr(Err.Number) & " in PFNStream::OOpen: " & Err.Description
-    ErrHandler "Open", """" & m_FNm & """" & vbCrLf & "FileMode: " & FileMode_ToStr(m_FMode) & "; FileAccess: " & FileAccess_ToStr(m_FAccess) & "; FileShare: " & FileShare_ToStr(m_FShare)
+Catch: ErrHandler "Open", """" & m_FNm & """" & vbCrLf & "FileMode: " & FileMode_ToStr(m_FMode) & "; FileAccess: " & FileAccess_ToStr(m_FAccess) & "; FileShare: " & FileShare_ToStr(m_FShare)
 End Sub
 
 Private Function FileMode_ToStr(e As FileMode) As String

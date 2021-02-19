@@ -167,8 +167,8 @@ Try: On Error GoTo Catch
     Dim s As String
     Dim dt As IFDataType
     With this
-        s = s & "Count: " & CStr(.count) & vbCrLf
-        For i = 0 To .count - 1 ' UBound(.Entries)
+        s = s & "Count: " & CStr(.Count) & vbCrLf
+        For i = 0 To .Count - 1 ' UBound(.Entries)
             s = s & " " & CStr(i) & ": " & vbCrLf
             s = s & IFDExifEntryValue_ToStr(.Entries(i)) & vbCrLf
         Next
@@ -176,9 +176,7 @@ Try: On Error GoTo Catch
     End With
     IFDExif_ToStr = s
     Exit Function
-Catch:
-    Dim mr As VbMsgBoxResult
-    If Err Then mr = ErrHandler("IFDGPS_ToStr", s)
+Catch: ErrHandler "IFDExif_ToStr", s
 End Function
 Public Function IFDExifEntryValue_ToStr(this As IFDEntryValue) As String
 Try: On Error GoTo Catch
@@ -188,21 +186,21 @@ Try: On Error GoTo Catch
         With .Entry
             s = s & "  Tag:    " & TagExif_ToStr(.Tag) & " &H" & Hex$(.Tag) & vbCrLf
             s = s & "  Type:   " & IFDataType_ToStr(.DataType) & vbCrLf
-            s = s & "  Count:  " & CStr(.count) & vbCrLf
+            s = s & "  Count:  " & CStr(.Count) & vbCrLf
             dt = .DataType
         End With
         'in zwei Schritten zuerst ob Offset geschrieben werden soll
         Select Case dt
         Case IFDataType.dtASCII, IFDataType.dtByte, IFDataType.dtSByte, IFDataType.dtUndefined2
-            If .Entry.count > 4 Then
+            If .Entry.Count > 4 Then
                 s = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
             End If
         Case IFDataType.dtShort, IFDataType.dtSShort
-            If .Entry.count > 2 Then
+            If .Entry.Count > 2 Then
                 s = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
             End If
         Case IFDataType.dtFloat, IFDataType.dtLong, IFDataType.dtSLong
-            If .Entry.count > 1 Then
+            If .Entry.Count > 1 Then
                 s = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
             End If
         Case IFDataType.dtRational, IFDataType.dtSRational, IFDataType.dtDouble
@@ -227,9 +225,7 @@ Try: On Error GoTo Catch
     End With
     IFDExifEntryValue_ToStr = s
     Exit Function
-Catch:
-    Dim mr As VbMsgBoxResult
-    If Err Then mr = ErrHandler("IFDGPSEntryValue_ToStr", s)
+Catch: ErrHandler "IFDExifEntryValue_ToStr", s
 End Function
 
 

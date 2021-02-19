@@ -208,8 +208,7 @@ Try: On Error GoTo Catch
     End With
     Exit Function
 Catch:
-    Dim mr As VbMsgBoxResult
-    If Err Then mr = ErrHandler("ReadIFD", this.OffsetNextIFD)
+    ErrHandler "ReadIFD", this.OffsetNextIFD
 End Function
 #Else
 Public Function ReadIFD(ByRef this As IFD, _
@@ -267,9 +266,7 @@ Try: On Error GoTo Catch
         Next
     End With
     Exit Property
-Catch:
-    Dim mr As VbMsgBoxResult
-    If Err Then mr = ErrHandler("IFD_ValueByTag", """" & CStr(IFD_ValueByTag) & """")
+Catch: ErrHandler "IFD_ValueByTag", """" & CStr(IFD_ValueByTag) & """"
 End Property
 ' ^ ############################## ^ '      IFD       ' ^ ############################## ^ '
 
@@ -385,9 +382,7 @@ Try: On Error GoTo Catch
     End With
     ReadIFDEntryValue = True
     Exit Function
-Catch:
-    Dim mr As VbMsgBoxResult
-    If Err Then mr = ErrHandler("ReadIFDEntryValue", "this.Entry.Count: " & CStr(this.Entry.Count))
+Catch: ErrHandler "ReadIFDEntryValue", "this.Entry.Count: " & CStr(this.Entry.Count)
 End Function
 #Else
 Public Function ReadIFDEntryValue(ByRef this As IFDEntryValue, _
@@ -526,9 +521,7 @@ Try: On Error GoTo Catch
     End With
     ReadIFDEntryValue = True
     Exit Function
-Catch:
-    Dim mr As VbMsgBoxResult
-    If Err Then mr = ErrHandler("ReadIFDEntryValue", "this.Entry.Count: " & CStr(this.Entry.Count))
+Catch: ErrHandler "ReadIFDEntryValue", "this.Entry.Count: " & CStr(this.Entry.Count)
 End Function
 #End If
 
@@ -627,34 +620,44 @@ Public Function IFRational_ToStr(ByVal v As Variant) As String
 End Function
 Public Function IFDEntryValue_ToStr(this As IFDEntryValue) As String
 Try: On Error GoTo Catch
-    Dim s As String
+    Dim s As String, c As String
     Dim dt As IFDataType
     With this
         With .Entry
-            s = s & "  Tag:    " & TagIF_ToStr(.Tag) & " &H" & Hex$(.Tag) & vbCrLf
-            s = s & "  Type:   " & IFDataType_ToStr(.DataType) & vbCrLf
-            s = s & "  Count:  " & CStr(.Count) & vbCrLf
+            's = s & "  Tag:    " & TagIF_ToStr(.Tag) & " &H" & Hex$(.Tag) & vbCrLf
+            's = s & "  Type:   " & IFDataType_ToStr(.DataType) & vbCrLf
+            's = s & "  Count:  " & CStr(.Count) & vbCrLf
+            c = "&H" & Hex$(.Tag)
+            s = s & "    " & TagIF_ToStr(.Tag) & Space(7 - Len(c)) & c & "  "
+            s = s & IFDataType_ToStr(.DataType) & "  "
+            c = CStr(.Count)
+            s = s & Space(6 - Len(c)) & c & "  "
             dt = .DataType
         End With
         'in zwei Schritten zuerst ob Offset geschrieben werden soll
         Select Case dt
         Case IFDataType.dtASCII, IFDataType.dtByte, IFDataType.dtSByte, IFDataType.dtUndefined2
             If .Entry.Count > 4 Then
-                s = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+                's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+                c = CStr(.Entry.ValueOffset)
             End If
         Case IFDataType.dtShort, IFDataType.dtSShort
             If .Entry.Count > 2 Then
-                s = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+                's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+                c = CStr(.Entry.ValueOffset)
             End If
         Case IFDataType.dtFloat, IFDataType.dtLong, IFDataType.dtSLong
             If .Entry.Count > 1 Then
-                s = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+                's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+                c = CStr(.Entry.ValueOffset)
             End If
         Case IFDataType.dtRational, IFDataType.dtSRational, IFDataType.dtDouble
-            s = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+            's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
+            c = CStr(.Entry.ValueOffset)
         End Select
         'dann den Wert dazuschreiben
-        s = s & "  Value:  "
+        's = s & "  Value:  "
+        s = s & Space(4 - Len(c)) & c & " "
         Dim v As Variant
         v = IFDEntryValue_GetValue(this)
         If IsArray(v) Then
@@ -710,10 +713,10 @@ Public Function IFDataType_ToStr(ByVal this As IFDataType) As String
     Case dtDouble:     s = "Double"
     Case dtSByte:      s = "Signed Byte"
     Case dtSShort:     s = "Signed Short"
-    Case dtUndefined2: s = s & "Undefined (Byte)"
+    Case dtUndefined2: s = "Undefined (Byte)"
     Case Else:         s = "Undefined"
     End Select
-    IFDataType_ToStr = s
+    IFDataType_ToStr = s & Space(17 - Len(s))
 End Function
 Public Function IFD_ToStr(this As IFD, Optional ByVal Index As Long) As String
 Try: On Error GoTo Catch
