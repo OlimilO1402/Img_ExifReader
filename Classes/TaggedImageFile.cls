@@ -32,57 +32,6 @@ Friend Sub New_(aFileName As String)
     m_FileName = aFileName
 End Sub
 
-#If AssumeNoBigEndBytSwap Then
-Public Function Read() As Boolean
-Try: On Error GoTo Finally
-
-    Dim OffsetExif       As Long
-    Dim OffsetIFHeader   As Long
-    Dim OffsetIFDExif    As Long
-    Dim OffsetIFDGPS     As Long
-    Dim OffsetIFDInterop As Long
-    
-    
-    Dim FNr As Integer: FNr = FreeFile
-    Open m_FileName For Binary Access Read As FNr
-    
-    OffsetExif = MExif.GetPosition(FNr, MExif.C_ExifHeader)
-    If OffsetExif < 0 Then
-        PErrHandler "Read", "Exif-tag not found.", False
-        Exit Function
-    End If
-    
-    OffsetIFHeader = Align4(OffsetExif + Len(MExif.C_ExifHeader))             'must be a multiple of 4 +1!
-    If OffsetIFHeader >= 0 Then _
-        Read = ReadIFHeader(m_IFHeader, FNr, OffsetIFHeader)
-        Read = ReadIFD(m_IFD_0, FNr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
-    
-    OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, itExifIFDOffset)
-    If OffsetIFDExif <> 0 Then _
-        Read = ReadIFD(m_IFD_Exif, FNr, OffsetIFDExif, OffsetIFHeader)
-    
-    OffsetIFDGPS = MExif.IFD_ValueByTag(m_IFD_0, itGPSIFDOffset)
-    If OffsetIFDGPS <> 0 Then _
-        Read = ReadIFD(m_IFD_GPS, FNr, OffsetIFDGPS, OffsetIFHeader)
-    
-    OffsetIFDInterop = MExif.IFD_ValueByTag(m_IFD_Exif, itInteropIFDOffset)
-    If OffsetIFDInterop <> 0 Then _
-        Read = ReadIFD(m_IFD_Interop, FNr, OffsetIFDInterop, OffsetIFHeader)
-    
-    If m_IFD_0.OffsetNextIFD <> 0 Then _
-        Read = ReadIFD(m_IFD_1, FNr, m_IFD_0.OffsetNextIFD, OffsetIFHeader)
-    
-    Read = True
-Finally:
-    Close #FNr
-    If Err <> 0 Then
-        Read = False
-        ErrHandler "Read", """" & m_FileName & """" '& vbclrf
-    End If
-End Function
-
-#Else
-
 Public Function Read() As Boolean
 Try: On Error GoTo Finally
     
@@ -92,8 +41,7 @@ Try: On Error GoTo Finally
     Dim OffsetIFDGPS     As Long
     Dim OffsetIFDInterop As Long
     
-    Dim fst As Stream:        Set fst = MNew.FileStream(m_FileName, fmBinary, faRead)
-    Dim ebr As EBinaryReader: Set ebr = MNew.EBinaryReader(fst)
+    Dim ebr As FilEBinReader: Set ebr = MNew.FilEBinReader(m_FileName)
     
     OffsetExif = MExif.GetPosition(ebr, MExif.C_ExifHeader)
     If OffsetExif < 0 Then
@@ -104,18 +52,18 @@ Try: On Error GoTo Finally
     OffsetIFHeader = Align4(OffsetExif + Len(MExif.C_ExifHeader))           'must be a multiple of 4 +1!
     If OffsetIFHeader >= 0 Then _
         Read = ReadIFHeader(m_IFHeader, ebr, OffsetIFHeader)
-        
+    'm_IFHeader.OffsetIFD0
     Read = ReadIFD(m_IFD_0, ebr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
     
-    OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, itExifIFDOffset)
+    OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itExifIFDOffset)
     If OffsetIFDExif <> 0 Then _
         Read = ReadIFD(m_IFD_Exif, ebr, OffsetIFDExif, OffsetIFHeader)
     
-    OffsetIFDGPS = MExif.IFD_ValueByTag(m_IFD_0, itGPSIFDOffset)
+    OffsetIFDGPS = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itGPSIFDOffset)
     If OffsetIFDGPS <> 0 Then _
         Read = ReadIFD(m_IFD_GPS, ebr, OffsetIFDGPS, OffsetIFHeader)
     
-    OffsetIFDInterop = MExif.IFD_ValueByTag(m_IFD_Exif, itInteropIFDOffset)
+    OffsetIFDInterop = MExif.IFD_ValueByTag(m_IFD_Exif, TagIF.itInteropIFDOffset)
     If OffsetIFDInterop <> 0 Then _
         Read = ReadIFD(m_IFD_Interop, ebr, OffsetIFDInterop, OffsetIFHeader)
     
@@ -124,13 +72,9 @@ Try: On Error GoTo Finally
     
     Read = True
 Finally:
-    fst.CClose
-    If Err <> 0 Then
-        Read = False
-        ErrHandler "Read", """" & m_FileName & """" '& vbclrf
-    End If
+    ebr.CClose
+    If Err <> 0 Then ErrHandler "Read", """" & m_FileName & """" '& vbclrf
 End Function
-#End If
 
 Friend Property Get IFHeader() As IFHeader
     IFHeader = m_IFHeader

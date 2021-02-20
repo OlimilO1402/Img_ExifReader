@@ -25,9 +25,6 @@ Public Enum TagIF
     itStripByteCounts = &H117               ' bytes per compressed strip
     itJPEGInterchangeFormat = &H201         ' Offset of JPEG SOI
     itJPEGInterchangeFormatLength = &H202   ' Bytes if JPEG data
-    
-    
-    
         
   'Tags relating to image data characteristics
     itTransferFunction = &H12D              ' Transfer function
@@ -45,8 +42,6 @@ Public Enum TagIF
     itArtist = &H13B                        ' Person who created the image
     'itSoftware = &H10E
     itCopyright = &H8298
-    
-    
     
     itExifIFDOffset = &H8769
     itGPSIFDOffset = &H8825 '34853

@@ -4,11 +4,11 @@ Begin VB.Form FrmMain
    ClientHeight    =   7695
    ClientLeft      =   60
    ClientTop       =   450
-   ClientWidth     =   11895
+   ClientWidth     =   12975
    LinkTopic       =   "Form1"
    OLEDropMode     =   1  'Manuell
    ScaleHeight     =   7695
-   ScaleWidth      =   11895
+   ScaleWidth      =   12975
    StartUpPosition =   3  'Windows-Standard
    Begin VB.ComboBox CBFileName 
       Height          =   315
@@ -75,16 +75,18 @@ Private Sub Form_Load()
         .AddItem p1 & "olympus-d320l.jpg" 'only JFIF no Exif-data
         .AddItem p1 & "sanyo-vpcg250.jpg"
         .AddItem p1 & "sanyo-vpcsx550.jpg"
+        .AddItem p1 & "sony_DSC-HX400V"
         .AddItem p1 & "sony-cybershot.jpg"
         
         .AddItem p2 & "fujifilm-finepix40i.jpg"
         .AddItem p2 & "kodak-dc210.jpg"
         .AddItem p2 & "kodak-dc240.jpg"
+        .AddItem p2 & "nikon-D7000.jpg"
         .AddItem p2 & "nikon-e950.jpg"    'JFIF with Exif-data
         .AddItem p2 & "ricoh-rdc5300.jpg"
         .AddItem p2 & "sony-d700.jpg"
     End With
-    CBFileName.ListIndex = 0
+    'CBFileName.ListIndex = 0
 End Sub
 
 Private Sub Form_Resize()

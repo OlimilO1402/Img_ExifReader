@@ -1,16 +1,11 @@
 Attribute VB_Name = "MExif"
 Option Explicit
 Public Type IFHeader
-'8 Bytes
-    ByteOrder(0 To 1) As Byte '&H4949 = "II" (Intel little endian) oder &H4D4D = "MM" (Motorola big endian)
-    'IFId(0 To 1)      As Byte ' = &H2A00 oder &H002A = 42 little oder big endian
-    IFId01            As Integer ' = &H2A00 oder &H002A = 42 little oder big endian
-    OffsetIFD0        As Long 'die Dateiposition der IFD-0-Struktur
-End Type
-Public Enum Endianness 'ByteOrder
-    IntelLittleEndian
-    MotorolaBigEndian
-End Enum
+    ByteOrder(0 To 1) As Byte    ' &H4949 = "II" (Intel little endian) or &H4D4D = "MM" (Motorola big endian)
+    'IFId(0 To 1)      As Byte   ' &H002A =  42
+    IFId01            As Integer ' &H002A =  42
+    OffsetIFD0        As Long    ' the file pos of the IFD-0-structure
+End Type                         '8 Bytes
 Public Type IFVersion
     A1 As Byte ' 0 = &H30
     A2 As Byte ' 2 = &H32
@@ -50,7 +45,7 @@ Public Enum IFDataType
     dtDouble = 12    'Double Precision 64bit
 End Enum
 Public Type IFDEntry
-    Tag         As Integer ' 2 ' Tag is an enum and contains the meaning of the data see MTagIF, MTagExif, MTagGPD
+    Tag         As Integer ' 2 ' Tag is an enum and contains the meaning of the data see MTagIF, MTagExif, MTagGPS
     DataType    As Integer ' 2 ' As ExifType aber dann wäre es standardmäßig 32bit
     Count       As Long    ' 4 ' Number of Values
     ValueOffset As Long    ' 4 ' Value für IFDataType 1,3,4,9, Offset for 2,5,10
@@ -77,26 +72,14 @@ Private Declare Sub CopyMem Lib "kernel32" Alias "RtlMoveMemory" ( _
     ByRef pDst As Any, ByRef pScr As Any, ByVal BytLength As Long)
 Public Const MaxTagStrLen As Long = 28
 
-#If AssumeNoBigEndBytSwap Then
-
-Public Function GetPosition(ByVal FNr As Integer, ByVal strVal As String) As Long
-
-#Else
-    
-Public Function GetPosition(ByVal ebr As EBinaryReader, ByVal strVal As String) As Long
-
-#End If
+Public Function GetPosition(ByVal ebr As FilEBinReader, ByVal strVal As String) As Long
     ' Searches the position of strVal in the file and returns it.
     ' Here it will be used to search for the string "Exif" in the file.
     Dim bytValue() As Byte: bytValue = StrConv(strVal, vbFromUnicode)
     ReDim bytbuffer(0 To 1023) As Byte
     
-#If AssumeNoBigEndBytSwap Then
-    Get FNr, 1, bytbuffer
-#Else
-    ebr.ReadBytes VarPtr(bytbuffer(0)), UBound(bytbuffer) + 1
-#End If
-        
+    ebr.ReadBytBuffer bytbuffer
+    
     Dim i As Long, j As Long, u As Long: u = UBound(bytValue)
     GetPosition = -1
     For i = 0 To UBound(bytbuffer) - u
@@ -122,26 +105,15 @@ Public Function Align4(ByVal val As Long) As Long
 End Function
 
 ' v ############################## v '    IFHeader    ' v ############################## v '
-#If AssumeNoBigEndBytSwap Then
 Public Function ReadIFHeader(ByRef this As IFHeader, _
-                             ByVal FNr As Integer, _
-                             ByVal OffsetIFHeader As Long) As Boolean
-Try: On Error GoTo Catch
-    Get FNr, OffsetIFHeader + 1, this
-    ReadIFHeader = True
-    Exit Function
-Catch: ErrHandler "ReadIFHeader"
-End Function
-#Else
-Public Function ReadIFHeader(ByRef this As IFHeader, _
-                             ByVal ebr As EBinaryReader, _
+                             ByVal ebr As FilEBinReader, _
                              ByVal OffsetIFHeader As Long) As Boolean
 Try: On Error GoTo Catch
     'Halt, so ist das Käse!
     'man muss zuerst die ersten2bytes die die endianness angeben lesen, und dann erst die folgenden bytes lesen
     'ebr.BaseStream.Position = OffsetIFHeader + 1
-    ebr.ReadByteBuf this.ByteOrder, OffsetIFHeader + 1
-    ebr.ReadEndianness = MExif.IFHeader_Endianness(this)
+    ebr.ReadBytBuffer this.ByteOrder, OffsetIFHeader + 1
+    ebr.Endianness = MExif.IFHeader_Endianness(this)
     this.IFId01 = ebr.ReadInt16
     this.OffsetIFD0 = ebr.ReadInt32
     ReadIFHeader = True
@@ -149,22 +121,20 @@ Try: On Error GoTo Catch
 Catch: ErrHandler "ReadIFHeader"
 End Function
 
-#End If
-
-Public Property Get IFHeader_Endianness(ByRef this As IFHeader) As Endianness
+Public Property Get IFHeader_Endianness(ByRef this As IFHeader) As EEndianness
     With this
         If .ByteOrder(0) = &H49 Then
-            IFHeader_Endianness = Endianness.IntelLittleEndian
+            IFHeader_Endianness = EEndianness.IntelLittleEndian
             'we are on Intel hence no rotation needed
         Else
-            IFHeader_Endianness = Endianness.MotorolaBigEndian
+            IFHeader_Endianness = EEndianness.MotorolaBigEndian
             'we are on Intel hence we have to rotate the offset-bytes
         End If
     End With
 End Property
-Public Property Let IFHeader_Endianness(ByRef this As IFHeader, ByVal RHS As Endianness)
+Public Property Let IFHeader_Endianness(ByRef this As IFHeader, ByVal RHS As EEndianness)
     With this
-        If RHS = IntelLittleEndian Then
+        If RHS = EEndianness.IntelLittleEndian Then
             .ByteOrder(0) = &H49 ' = Asc("I")
             .ByteOrder(1) = &H49
         Else
@@ -187,32 +157,8 @@ End Property
 ' ^ ############################## ^ '    IFHeader    ' ^ ############################## ^ '
 
 ' v ############################## v '      IFD       ' v ############################## v '
-#If AssumeNoBigEndBytSwap Then
 Public Function ReadIFD(ByRef this As IFD, _
-                        ByVal FNr As Integer, _
-                        ByVal OffsetIFD As Long, _
-                        ByVal OffsetIFHeader As Long) As Boolean
-Try: On Error GoTo Catch
-    Dim i As Long
-    With this
-        Get FNr, OffsetIFD + OffsetIFHeader + 1, .Count
-        ReDim .Entries(0 To .Count - 1)
-        For i = 0 To .Count - 1
-            Get FNr, , .Entries(i).Entry
-        Next
-        Get FNr, , .OffsetNextIFD
-        For i = 0 To .Count - 1
-            ReadIFD = ReadIFDEntryValue(.Entries(i), FNr, OffsetIFHeader)
-        Next
-        ReadIFD = True
-    End With
-    Exit Function
-Catch:
-    ErrHandler "ReadIFD", this.OffsetNextIFD
-End Function
-#Else
-Public Function ReadIFD(ByRef this As IFD, _
-                        ByVal ebr As EBinaryReader, _
+                        ByVal ebr As FilEBinReader, _
                         ByVal OffsetIFD As Long, _
                         ByVal OffsetIFHeader As Long) As Boolean
 Try: On Error GoTo Catch
@@ -222,27 +168,12 @@ Try: On Error GoTo Catch
         ReDim .Entries(0 To .Count - 1)
         Dim p As Long
         Dim bl As Long
-        
-        
-'IFDEntry
-'    Tag         As Integer ' 2 ' Tag is an enum and contains the meaning of the data see MTagIF, MTagExif, MTagGPD
-'    DataType    As Integer ' 2 ' As ExifType aber dann wäre es standardmäßig 32bit
-'    Count       As Long    ' 4 ' Number of Values
-'    ValueOffset As Long    ' 4 ' Value für IFDataType 1,3,4,9, Offset for 2,5,10
-        
-        
         For i = 0 To .Count - 1
             .Entries(i).Entry.Tag = ebr.ReadInt16
             .Entries(i).Entry.DataType = ebr.ReadInt16
             .Entries(i).Entry.Count = ebr.ReadInt32
             .Entries(i).Entry.ValueOffset = ebr.ReadInt32
-            'p = VarPtr(.Entries(i).Entry)
-            'bl = LenB(.Entries(i).Entry)
-            'ebr.ReadBytes VarPtr(.Entries(i).Entry), LenB(.Entries(i).Entry)
-            'ebr.ReadBytes p, bl
-            'Get FNr, , .Entries(i).Entry
         Next
-        'Get FNr, , .OffsetNextIFD
         .OffsetNextIFD = ebr.ReadInt32
         For i = 0 To .Count - 1
             ReadIFD = ReadIFDEntryValue(.Entries(i), ebr, OffsetIFHeader)
@@ -252,7 +183,6 @@ Try: On Error GoTo Catch
     Exit Function
 Catch: ErrHandler "ReadIFD", this.OffsetNextIFD
 End Function
-#End If
 
 Public Property Get IFD_ValueByTag(this As IFD, ByVal aTag As TagIF) As Variant
 Try: On Error GoTo Catch
@@ -271,122 +201,8 @@ End Property
 ' ^ ############################## ^ '      IFD       ' ^ ############################## ^ '
 
 ' v ############################## v ' IFDEntryValue  ' v ############################## v '
-#If AssumeNoBigEndBytSwap Then
 Public Function ReadIFDEntryValue(ByRef this As IFDEntryValue, _
-                                  ByVal FNr As Integer, _
-                                  ByVal OffsetIFDHeader As Long) As Boolean
-Try: On Error GoTo Catch
-    'der Array Entries mit IFEntry wurde schon gelesen jetzt werden die Werte gelesen die nicht in ValueOffset
-    'enthalten sind sondern an einem bestimmten Offset (dem ValueOffset) in der Datei liegen.
-    'für die verschiedenen Datentypen wird je eine Variablen angelegt.
-    'der Rational wird als Currency (der im Variant steckt) zurückgegeben, da beide 64Bit haben.
-    Dim i As Long
-    'Dim v As Variant
-    Dim bytval As Byte, intVal As Integer, lngVal As Long, ratVal As Currency, strVal As String
-    Dim sngVal As Single, dblVal As Double
-    Dim ofs As Long
-    With this
-        ofs = .Entry.ValueOffset + OffsetIFDHeader + 1
-        Select Case .Entry.DataType
-        Case IFDataType.dtByte, IFDataType.dtSByte, IFDataType.dtUndefined2
-                                ' muß nur gelesen werden wenn Length > 4, weil
-                                ' zwischen 1 und 4 Byte stehen die Werte schon in ValueOffset
-                                If .Entry.Count > 4 Then
-                                    'den ersten immer mit ofs lesen
-                                    'die anderen gehen dann ohne
-                                    Get FNr, ofs, bytval
-                                    ReDim .Value(0 To .Entry.Count - 1) As Byte
-                                    .Value(0) = bytval
-                                    For i = 1 To .Entry.Count - 1
-                                        Get aFNr, , bytval
-                                        .Value(i) = bytval
-                                    Next
-                                End If
-                                
-        Case IFDataType.dtASCII:
-                                ' muß nur gelesen werden wenn Length > 4, weil
-                                ' zwischen 1 und 4 Character stehen die Werte schon in ValueOffset
-                                If .Entry.Count > 4 Then
-                                    strVal = Space$(.Entry.Count)
-                                    Get FNr, ofs, strVal
-                                    'strVal = StrConv(strVal, vbUnicode)
-                                    Dim p As Long
-                                    p = InStr(1, strVal, vbNullChar, vbBinaryCompare)
-                                    If p > 0 Then
-                                        .Value = Left$(strVal, p - 1)
-                                    Else
-                                        .Value = Trim$(strVal)
-                                    End If
-                                End If
-        Case IFDataType.dtShort, IFDataType.dtSShort:
-                                ' muß nur gelesen werden wenn Length > 2, weil
-                                ' zwischen 1 und 2 Shorts stehen die Werte schon in ValueOffset
-                                If .Entry.Count > 2 Then
-                                    Get FNr, ofs, intVal
-                                    ReDim .Value(0 To .Entry.Count - 1) As Integer
-                                    .Value(0) = intVal
-                                    For i = 1 To .Entry.Count - 1
-                                        Get aFNr, , intVal
-                                        .Value(i) = intVal
-                                    Next
-                                End If
-        Case dtLong, dtSLong:
-                                'den Long nur lesen falls Length > 1
-                                If .Entry.Count > 1 Then
-                                    Get FNr, ofs, lngVal
-                                    ReDim .Value(0 To .Entry.Count - 1) As Long
-                                    .Value(0) = lngVal
-                                    For i = 1 To .Entry.Count - 1
-                                        Get FNr, , lngVal
-                                        .Value(i) = lngVal
-                                    Next
-                                End If
-        Case dtRational, dtSRational
-                                'der Rational muß immer vom Offset gelesen werden
-                                Get FNr, ofs, ratVal
-                                If .Entry.Count = 1 Then
-                                    .Value = ratVal
-                                Else
-                                    ReDim .Value(0 To .Entry.Count - 1) As Currency
-                                    .Value(0) = ratVal
-                                    For i = 1 To .Entry.Count - 1
-                                        Get FNr, , ratVal
-                                        .Value(i) = ratVal
-                                    Next
-                                End If
-        Case dtDouble:
-                                'der Double muß immer vom Offset gelesen werden
-                                Get FNr, ofs, dblVal
-                                If .Entry.Count = 1 Then
-                                    .Value = dblVal
-                                Else
-                                    ReDim .Value(0 To .Entry.Count - 1) As Double
-                                    .Value(0) = dblVal
-                                    For i = 1 To .Entry.Count - 1
-                                        Get FNr, , dblVal
-                                        .Value(i) = dblVal
-                                    Next
-                                End If
-        Case dtFloat:
-                                'den Single nur lesen falls Length > 1
-                                If .Entry.Count > 1 Then
-                                    Get FNr, ofs, sngVal
-                                    ReDim .Value(0 To .Entry.Count - 1) As Single
-                                    .Value(0) = sngVal
-                                    For i = 1 To .Entry.Count - 1
-                                        Get FNr, , sngVal
-                                        .Value(i) = sngVal
-                                    Next
-                                End If
-        End Select
-    End With
-    ReadIFDEntryValue = True
-    Exit Function
-Catch: ErrHandler "ReadIFDEntryValue", "this.Entry.Count: " & CStr(this.Entry.Count)
-End Function
-#Else
-Public Function ReadIFDEntryValue(ByRef this As IFDEntryValue, _
-                                  ByVal ebr As EBinaryReader, _
+                                  ByVal ebr As FilEBinReader, _
                                   ByVal OffsetIFDHeader As Long) As Boolean
 Try: On Error GoTo Catch
     'der Array Entries mit IFEntry wurde schon gelesen jetzt werden die Werte gelesen die nicht in ValueOffset
@@ -412,7 +228,7 @@ Try: On Error GoTo Catch
                                     
                                     'hmm komisch, das müßte doch auch viel eifacher so gehen, oder?
                                     ReDim bytes(0 To .Entry.Count - 1) As Byte
-                                    ebr.ReadByteBuf bytes, ofs
+                                    ebr.ReadBytBuffer bytes, ofs
                                     .Value = bytes
                                     
                                     '.Value(0) = bytval
@@ -523,7 +339,6 @@ Try: On Error GoTo Catch
     Exit Function
 Catch: ErrHandler "ReadIFDEntryValue", "this.Entry.Count: " & CStr(this.Entry.Count)
 End Function
-#End If
 
 Public Function IFDEntryValue_GetValue(this As IFDEntryValue) As Variant
 Try: On Error GoTo Catch
@@ -618,46 +433,58 @@ Public Function IFRational_ToStr(ByVal v As Variant) As String
     Dim r As IFRational: Call GetMem8(ByVal VarPtr(v) + 8, r)
     IFRational_ToStr = CStr(r.Numerator) & "/" & CStr(r.Denominator)
 End Function
+Public Function IFD_ToStr(this As IFD, Optional ByVal Index As Long) As String
+Try: On Error GoTo Catch
+    Dim i As Long
+    Dim s As String, c As String
+    Dim dt As IFDataType
+    With this
+        s = s & "Count: " & CStr(.Count) & vbCrLf
+        s = s & " Nr:  Tag-Name                     Tag-ID  Type                Count  Offset  Value" & vbCrLf
+        For i = 0 To .Count - 1
+            c = CStr(i)
+            s = s & Space(3 - Len(c)) & c & ": "
+            s = s & IFDEntryValue_ToStr(.Entries(i)) & vbCrLf
+        Next
+        s = s & "OffsetNextIFD: " & CStr(.OffsetNextIFD) & vbCrLf
+    End With
+    IFD_ToStr = s
+    Exit Function
+Catch: ErrHandler "IFD_ToStr", s
+End Function
 Public Function IFDEntryValue_ToStr(this As IFDEntryValue) As String
 Try: On Error GoTo Catch
     Dim s As String, c As String
     Dim dt As IFDataType
     With this
         With .Entry
-            's = s & "  Tag:    " & TagIF_ToStr(.Tag) & " &H" & Hex$(.Tag) & vbCrLf
-            's = s & "  Type:   " & IFDataType_ToStr(.DataType) & vbCrLf
-            's = s & "  Count:  " & CStr(.Count) & vbCrLf
             c = "&H" & Hex$(.Tag)
-            s = s & "    " & TagIF_ToStr(.Tag) & Space(7 - Len(c)) & c & "  "
+            s = s & " " & TagIF_ToStr(.Tag) & Space(7 - Len(c)) & c & "  "
             s = s & IFDataType_ToStr(.DataType) & "  "
             c = CStr(.Count)
-            s = s & Space(6 - Len(c)) & c & "  "
+            s = s & Space(6 - Len(c)) & c & "    "
             dt = .DataType
         End With
         'in zwei Schritten zuerst ob Offset geschrieben werden soll
+        c = vbNullString
         Select Case dt
         Case IFDataType.dtASCII, IFDataType.dtByte, IFDataType.dtSByte, IFDataType.dtUndefined2
             If .Entry.Count > 4 Then
-                's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
                 c = CStr(.Entry.ValueOffset)
             End If
         Case IFDataType.dtShort, IFDataType.dtSShort
             If .Entry.Count > 2 Then
-                's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
                 c = CStr(.Entry.ValueOffset)
             End If
         Case IFDataType.dtFloat, IFDataType.dtLong, IFDataType.dtSLong
             If .Entry.Count > 1 Then
-                's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
                 c = CStr(.Entry.ValueOffset)
             End If
         Case IFDataType.dtRational, IFDataType.dtSRational, IFDataType.dtDouble
-            's = s & "  Offset: " & CStr(.Entry.ValueOffset) & vbCrLf
             c = CStr(.Entry.ValueOffset)
         End Select
         'dann den Wert dazuschreiben
-        's = s & "  Value:  "
-        s = s & Space(4 - Len(c)) & c & " "
+        s = s & Space(4 - Len(c)) & c & "  "
         Dim v As Variant
         v = IFDEntryValue_GetValue(this)
         If IsArray(v) Then
@@ -689,10 +516,17 @@ Try: On Error GoTo Catch
             Next
             s = s & IFRational_ToStr(vArr(i)) & "}"
         Else
-            For i = LBound(vArr) To UBound(vArr) - 1
+            '{0; 0; 0; ...; 0}
+            Dim u0 As Long: u0 = UBound(vArr)
+            Const ShowMaxBytes As Long = 32
+            Dim u As Long: u = Min(ShowMaxBytes, u0)
+            For i = LBound(vArr) To u - 1
                 s = s & CStr(vArr(i)) & "; "
             Next
-            s = s & CStr(vArr(i)) & "}"
+            If u0 > 32 Then
+                s = s & "...;"
+            End If
+            s = s & CStr(vArr(u0)) & "}"
         End If
     End If
     IFValueArray_ToStr = s
@@ -718,33 +552,6 @@ Public Function IFDataType_ToStr(ByVal this As IFDataType) As String
     End Select
     IFDataType_ToStr = s & Space(17 - Len(s))
 End Function
-Public Function IFD_ToStr(this As IFD, Optional ByVal Index As Long) As String
-Try: On Error GoTo Catch
-    Dim i As Long
-    Dim s As String
-    Dim dt As IFDataType
-    With this
-        s = s & "Count: " & CStr(.Count) & vbCrLf
-        For i = 0 To .Count - 1 ' UBound(.Entries)
-            s = s & " " & CStr(i) & ": " & vbCrLf
-            s = s & IFDEntryValue_ToStr(.Entries(i)) & vbCrLf
-        Next
-        s = s & " OffsetNextIFD: " & CStr(.OffsetNextIFD) & vbCrLf
-    End With
-    IFD_ToStr = s
-    Exit Function
-Catch: ErrHandler "IFD_ToStr", s
-End Function
-
-Public Function Endianness_ToStr(e As Endianness) As String 'ByteOrder
-    Dim s As String
-    Select Case e
-    Case Endianness.IntelLittleEndian: s = "IntelLittleEndian"
-    Case Endianness.MotorolaBigEndian: s = "MotorolaBigEndian"
-    End Select
-    Endianness_ToStr = s
-End Function
-
 
 '##############################'   Locale ErrHandler   '##############################'
 Private Function ErrHandler(ByVal FncName As String, _
