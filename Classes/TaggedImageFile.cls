@@ -55,15 +55,15 @@ Try: On Error GoTo Finally
     'm_IFHeader.OffsetIFD0
     Read = ReadIFD(m_IFD_0, ebr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
     
-    OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itExifIFDOffset)
+    OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itIFDOffsetExif)
     If OffsetIFDExif <> 0 Then _
         Read = ReadIFD(m_IFD_Exif, ebr, OffsetIFDExif, OffsetIFHeader)
     
-    OffsetIFDGPS = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itGPSIFDOffset)
+    OffsetIFDGPS = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itIFDOffsetGPS)
     If OffsetIFDGPS <> 0 Then _
         Read = ReadIFD(m_IFD_GPS, ebr, OffsetIFDGPS, OffsetIFHeader)
     
-    OffsetIFDInterop = MExif.IFD_ValueByTag(m_IFD_Exif, TagIF.itInteropIFDOffset)
+    OffsetIFDInterop = MExif.IFD_ValueByTag(m_IFD_Exif, TagIF.itIFDOffsetInterop)
     If OffsetIFDInterop <> 0 Then _
         Read = ReadIFD(m_IFD_Interop, ebr, OffsetIFDInterop, OffsetIFHeader)
     
@@ -104,11 +104,11 @@ Try: On Error GoTo Catch
     End If
     If m_IFD_Exif.Count > 0 Then
         s = s & "IFD_Exif" & vbCrLf & "========" & vbCrLf
-        s = s & MTagExif.IFDExif_ToStr(m_IFD_Exif)
+        s = s & MExif.IFD_ToStr(m_IFD_Exif)
     End If
     If m_IFD_GPS.Count > 0 Then
         s = s & "IFD_GPS" & vbCrLf & "=======" & vbCrLf
-        s = s & MTagGPS.IFDGPS_ToStr(m_IFD_GPS)
+        s = s & MExif.IFD_ToStr(m_IFD_GPS)
     End If
     If m_IFD_Interop.Count > 0 Then
         s = s & "IFD_Interop" & vbCrLf & "===========" & vbCrLf

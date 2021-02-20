@@ -427,7 +427,6 @@ Public Function IFDEntryValue_IsEqual(this As IFDEntryValue, other As IFDEntryVa
 End Function
 ' ^ ############################## ^ ' IFDEntryValue  ' ^ ############################## ^ '
 
-
 ' v ############################## v '   all ToStr    ' v ############################## v '
 Public Function IFRational_ToStr(ByVal v As Variant) As String
     Dim r As IFRational: Call GetMem8(ByVal VarPtr(v) + 8, r)
@@ -440,7 +439,7 @@ Try: On Error GoTo Catch
     Dim dt As IFDataType
     With this
         s = s & "Count: " & CStr(.Count) & vbCrLf
-        s = s & " Nr:  Tag-Name                     Tag-ID  Type                Count  Offset  Value" & vbCrLf
+        s = s & " Nr:  Tag-Name                     Tag-ID  Type                  Count      Offset  Value" & vbCrLf
         For i = 0 To .Count - 1
             c = CStr(i)
             s = s & Space(3 - Len(c)) & c & ": "
@@ -459,10 +458,10 @@ Try: On Error GoTo Catch
     With this
         With .Entry
             c = "&H" & Hex$(.Tag)
-            s = s & " " & TagIF_ToStr(.Tag) & Space(7 - Len(c)) & c & "  "
+            s = s & " " & MTagExif.TagExif_ToStr(.Tag) & Space(7 - Len(c)) & c & "  "
             s = s & IFDataType_ToStr(.DataType) & "  "
             c = CStr(.Count)
-            s = s & Space(6 - Len(c)) & c & "    "
+            s = s & Space(8 - Len(c)) & c & "    "
             dt = .DataType
         End With
         'in zwei Schritten zuerst ob Offset geschrieben werden soll
@@ -484,7 +483,7 @@ Try: On Error GoTo Catch
             c = CStr(.Entry.ValueOffset)
         End Select
         'dann den Wert dazuschreiben
-        s = s & Space(4 - Len(c)) & c & "  "
+        s = s & Space(8 - Len(c)) & c & "  "
         Dim v As Variant
         v = IFDEntryValue_GetValue(this)
         If IsArray(v) Then
@@ -503,6 +502,7 @@ Try: On Error GoTo Catch
     IFDEntryValue_ToStr = s
     Exit Function
 Catch: ErrHandler "IFDEntryValue_ToStr", s
+    IFDEntryValue_ToStr = s
 End Function
 Public Function IFValueArray_ToStr(ByVal dt As IFDataType, ByRef vArr As Variant) As String
 Try: On Error GoTo Catch
@@ -552,6 +552,82 @@ Public Function IFDataType_ToStr(ByVal this As IFDataType) As String
     End Select
     IFDataType_ToStr = s & Space(17 - Len(s))
 End Function
+
+'Public Function IFD_ToStr(this As IFD, Optional ByVal Index As Long) As String
+'Try: On Error GoTo Catch
+'    Dim i As Long
+'    Dim s As String, c As String
+'    Dim dt As IFDataType
+'    With this
+'        s = s & "Count: " & CStr(.Count) & vbCrLf
+'        s = s & " Nr:  Tag-Name                     Tag-ID  Type                  Count      Offset  Value" & vbCrLf
+'        For i = 0 To .Count - 1
+'            c = CStr(i)
+'            s = s & Space(3 - Len(c)) & c & ": "
+'            s = s & IFDExifEntryValue_ToStr(.Entries(i)) & vbCrLf
+'        Next
+'        s = s & "OffsetNextIFD: " & CStr(.OffsetNextIFD) & vbCrLf
+'    End With
+'    IFDExif_ToStr = s
+'    Exit Function
+'Catch: ErrHandler "IFDExif_ToStr", s
+'End Function
+'Public Function IFDExifEntryValue_ToStr(this As IFDEntryValue) As String
+'Try: On Error GoTo Catch
+'    Dim s As String, c As String
+'    Dim dt As IFDataType
+'    With this
+'        With .Entry
+'            'If .Tag = &H9286 Then
+'            '    Debug.Print Hex(.Tag)
+'            'End If
+'            c = "&H" & Hex$(.Tag)
+'            s = s & " " & TagExif_ToStr(.Tag) & Space(7 - Len(c)) & c & "  "
+'            s = s & IFDataType_ToStr(.DataType) & "  "
+'            c = CStr(.Count)
+'            s = s & Space(8 - Len(c)) & c & "    "
+'            dt = .DataType
+'        End With
+'        'in zwei Schritten zuerst ob Offset geschrieben werden soll
+'        c = vbNullString
+'        Select Case dt
+'        Case IFDataType.dtASCII, IFDataType.dtByte, IFDataType.dtSByte, IFDataType.dtUndefined2
+'            If .Entry.Count > 4 Then
+'                c = CStr(.Entry.ValueOffset)
+'            End If
+'        Case IFDataType.dtShort, IFDataType.dtSShort
+'            If .Entry.Count > 2 Then
+'                c = CStr(.Entry.ValueOffset)
+'            End If
+'        Case IFDataType.dtFloat, IFDataType.dtLong, IFDataType.dtSLong
+'            If .Entry.Count > 1 Then
+'                c = CStr(.Entry.ValueOffset)
+'            End If
+'        Case IFDataType.dtRational, IFDataType.dtSRational, IFDataType.dtDouble
+'            c = CStr(.Entry.ValueOffset)
+'        End Select
+'        'dann den Wert dazuschreiben
+'        s = s & Space(8 - Len(c)) & c & "  "
+'        Dim v As Variant
+'        v = MExif.IFDEntryValue_GetValue(this)
+'        If IsArray(v) Then
+'            s = s & IFValueArray_ToStr(dt, v)
+'        Else
+'            Select Case dt
+'            Case IFDataType.dtRational, IFDataType.dtSRational
+'                s = s & IFRational_ToStr(v)
+'            Case IFDataType.dtASCII
+'                s = s & """" & v & """"
+'            Case Else
+'                s = s & CStr(v)
+'            End Select
+'        End If
+'    End With
+'    IFDExifEntryValue_ToStr = s
+'    Exit Function
+'Catch: ErrHandler "IFDExifEntryValue_ToStr", s
+'    IFDExifEntryValue_ToStr = s
+'End Function
 
 '##############################'   Locale ErrHandler   '##############################'
 Private Function ErrHandler(ByVal FncName As String, _

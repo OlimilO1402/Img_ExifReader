@@ -1,6 +1,97 @@
 Attribute VB_Name = "MTagExif"
 Option Explicit
 '                                                                                                         Tag-ID
+
+Public Enum TagGPS
+    itGPSVersionID = 0         ' &H0  BYTE        4 ' GPS tag version
+    itGPSLatitudeRef = 1       ' &H1  ASCII       2 ' North or South Latitude
+    itGPSLatitude = 2          ' &H2  RATIONAL    3 ' Latitude
+    itGPSLongitudeRef = 3      ' &H3  ASCII       2 ' East or West Longitude
+    itGPSLongitude = 4         ' &H4  RATIONAL    3 ' Longitude
+    itGPSAltitudeRef = 5       ' &H5  BYTE        1 ' Altitude reference
+    itGPSAltitude = 6          ' &H6  RATIONAL    1 ' Altitude
+    itGPSTimeStamp = 7         ' &H7  RATIONAL    3 ' GPS time (atomic clock)
+    itGPSSatellites = 8        ' &H8  ASCII     Any ' GPS satellites used for measurement
+    itGPSStatus = 9            ' &H9  ASCII       2 ' GPS receiver status
+    itGPSMeasureMode = 10      ' &HA  ASCII       2 ' GPS measurement mode
+    itGPSDOP = 11              ' &HB  RATIONAL    1 ' Measurement precision
+    itGPSSpeedRef = 12         ' &HC  ASCII       2 ' Speed unit
+    itGPSSpeed = 13            ' &HD  RATIONAL    1 ' Speed of GPS receiver
+    itGPSTrackRef = 14         ' &HE  ASCII       2 ' Reference for direction of movement
+    itGPSTrack = 15            ' &HF  RATIONAL    1 ' Direction of movement
+    itGPSImgDirectionRef = 16  ' &H10 ASCII       2 ' Reference for direction of image
+    itGPSImgDirection = 17     ' &H11 RATIONAL    1 ' Direction of image
+    itGPSMapDatum = 18         ' &H12 ASCII     Any ' Geodetic survey data used
+    itGPSDestLatitudeRef = 19  ' &H13 ASCII       2 ' Reference for latitude of destination
+    itGPSDestLatitude = 20     ' &H14 RATIONAL    3 ' Latitude of destination
+    itGPSDestLongitudeRef = 21 ' &H15 ASCII       2 ' Reference for longitude of destination
+    itGPSDestLongitude = 22    ' &H16 RATIONAL    3 ' Longitude of destination
+    itGPSDestBearingRef = 23   ' &H17 ASCII       2 ' Reference for bearing of destination
+    itGPSDestBearing = 24      ' &H18 RATIONAL    1 ' Bearing of destination
+    itGPSDestDistanceRef = 25  ' &H19 ASCII       2 ' Reference for distance to destination
+    itGPSDestDistance = 26     ' &H1A RATIONAL    1 ' Distance to destination
+    itGPSProcessingMethod = 27 ' &H1B UNDEFINED Any ' Name of GPS processing method
+    itGPSAreaInformation = 28  ' &H1C UNDEFINED Any ' Name of GPS area
+    itGPSDateStamp = 29        ' &H1D ASCII      11 ' GPS date
+    itGPSDifferential = 30     ' &H1E SHORT       1 ' GPS differential correction
+End Enum '31
+
+Public Enum TagIF
+  'itInteropIndex = &H1
+    
+  'A) Tags relating to image data structure
+    itImageWidth = &H100                    ' Image width
+    itImageLength = &H101                   ' Image height
+    itBitsPerSample = &H102                 ' Number of bits per component
+    itCompression = &H103                   ' Compression scheme
+    itPhotometricInterpretaion = &H106      ' Pixel composition
+    itOrientation = &H112                   ' Orientation of image
+    itSamplesPerPixel = &H115               ' Number of components
+    itPlanarConfiguration = &H11C           ' Image data arrangement
+    itYCbCrSubSampling = &H212              ' Subsampling ratio of Y to C
+    itYCbCrPositioning = &H213              ' Y and Yc positioning
+    itXResolution = &H11A                   ' Image resolution in width direction
+    itYResolution = &H11B                   ' Image resolution in height direction
+    itResolutionUnit = &H128                ' ResolutionUnit
+  
+  'B) Tags relating to recording offset
+    itStripOffsets = &H111                  ' Image Data location
+    itRowsPerStrip = &H116                  ' Number of rows per strip
+    itStripByteCounts = &H117               ' bytes per compressed strip
+    itJPEGInterchangeFormat = &H201         ' Offset of JPEG SOI
+    itJPEGInterchangeFormatLength = &H202   ' Bytes if JPEG data
+        
+  'Tags relating to image data characteristics
+    itTransferFunction = &H12D              ' Transfer function
+    itWhitePoint = &H13E                    ' White point
+    itPrimaryChromaticities = &H13F         ' Primary Chromaticities
+    itYCbCrCoefficients = &H211             ' YCbCrCoefficients
+    itReferenceBlackWhite = &H214           ' ReferenceBlackWhite
+  
+  'Other tags
+    itDateTime = &H132                      ' File change date and time
+    itImageDescription = &H10E              ' image title
+    itMaker = &H10F                          ' manufacturer
+    itModel = &H110                         ' Image input equipment model
+    itSoftwareUsed = &H131                  ' Software used
+    itArtist = &H13B                        ' Person who created the image
+    'itSoftware = &H10E
+    itCopyright = &H8298
+    
+    itIFDOffsetExif = &H8769
+    itIFDOffsetGPS = &H8825 '34853
+    itIFDOffsetInterop = &HA005
+    
+'GPS Info IFD Pointer
+'Tag = 34853 (8825.H)
+'Type = LONG
+'Count = 1
+'Default = none
+    
+    ' = &H0
+    ' = &H0
+End Enum '34
+
                                           'Tag-Name                        Field-Name                    Dec      Hex      Type              Count
 Public Enum TagExif
                                           'A. Tags Relating to Version
@@ -39,6 +130,14 @@ Public Enum TagExif
     itSpectralSensitivity = &H8824        'Spectral sensitivity            SpectralSensitivity           34852    8824     ASCII             Any
     itISOSpeedRatings = &H8827            'ISO speed rating                ISOSpeedRatings               34855    8827     SHORT             Any
     itOECF = &H8828                       'Optoelectric conversion factor  OECF                          34856    8828     UNDEFINED         Any
+    'ifOptoElectricConvFact = &H8828
+    itSensitivityType = &H8830
+    itStandardOutputSensitivity = &H8831
+    itRecommendedExposureIndex = &H8832
+    itISOSpeed = &H8833
+    itISOSpeedLatitudeYYY = &H8834
+    itISOSpeedLatitudeZZZ = &H8835
+    
     itShutterSpeedValue = &H9201          'Shutter speed                   ShutterSpeedValue             37377    9201     SRATIONAL         1
     itApertureValue = &H9202              'Aperture                        ApertureValue                 37378    9202     RATIONAL          1
     itBrightnessValue = &H9203            'Brightness                      BrightnessValue               37379    9203     SRATIONAL         1
@@ -77,174 +176,171 @@ Public Enum TagExif
                                           'H.other Tags
     itImageUniqueID = &HA420              'Unique image ID                 ImageUniqueID                 42016    A420     ASCII             33
 
-End Enum
 
-Public Function TagExif_ToStr(ByVal this As TagExif) As String
+    itCameraOwnerName = &HA430
+    itBodySerialNumber = &HA431
+    itLensSpecification = &HA432
+    itLensMaker = &HA433
+    itLensModel = &HA434
+    itLensSerialnumber = &HA435
+    'CompositeImage   = &HA????
+    'SourceImageNumberOfCompositeImage     = &HA????
+    'SourceExposureTimeOfCompositeImage     = &HA????
+    itGamma = &HA500
+          
+
+'    MarkerSegments
+'    StartOfImage = &HFFD8
+'    ApplicationSegment1 = &HFFE1
+'    ApplicationSegment2 = &HFFE2
+'    DefineQuantizationTable = &HFFDB
+'    DefineHuffmanTable = &HFFC4
+'    DefineRstartInteroperability = &HFFDD
+'    StartOfFrame = &HFFC0
+'    StartOfScan = &HFFDA
+'    EndOfImage = &HFFD9
+
+End Enum '69
+
+Public Function TagExif_ToStr(ByVal e As Integer) As String
     Dim s As String
-    Select Case this
-                                                                            'A. Tags Relating to Version
-    Case itExifVersion:                 s = "ExifVersion"                   'Exif version                    ExifVersion                   36864    9000     UNDEFINED         4
-    Case itFlashpixVersion:             s = "FlashpixVersion"               'Supported Flashpix version      FlashpixVersion               40960    A000     UNDEFINED         4
-
-                                                                            'B. Tag Relating to Image Data Characteristics
-    Case itColorSpace:                  s = "ColorSpace"                    'Color space information         ColorSpace                    40961    A001     SHORT             1
-
-                                                                            'C. Tags Relating to Image Configuration
-    Case itComponentsConfiguration:     s = "ComponentsConfiguration"       'Meaning of each component       ComponentsConfiguration       37121    9101     UNDEFINED         4
-    Case itCompressedBitsPerPixel:      s = "CompressedBitsPerPixel"        'Image compression mode          CompressedBitsPerPixel        37122    9102     RATIONAL          1
-    Case itPixelXDimension:             s = "PixelXDimension"               'Valid image width               PixelXDimension               40962    A002     SHORT or LONG     1
-    Case itPixelYDimension:             s = "PixelYDimension"               'Valid image height              PixelYDimension               40963    A003     SHORT or LONG     1
-
-                                                                            'D. Tags Relating to User Information
-    Case itMakerNote:                   s = "MakerNote"                     'Manufacturer notes              MakerNote                     37500    927C     UNDEFINED         Any
-    Case itUserComment:                 s = "UserComment"                   'User comments                   UserComment                   37510    9286     UNDEFINED         Any
-
-                                                                            'E. Tag Relating to Related File Information
-    Case itRelatedSoundFile:            s = "RelatedSoundFile"              'Related audio file              RelatedSoundFile              40964    A004     ASCII             13
-                                                                         
-                                                                            'F. Tags Relating to Date and Time
-                                                                            'Date and time of original data
-    Case itDateTimeOriginal:            s = "DateTimeOriginal"              'generation                      DateTimeOriginal              36867    9003     ASCII             20
-                                                                            'Date and time of digital data
-    Case itDateTimeDigitized:           s = "DateTimeDigitized"             'generation                      DateTimeDigitized             36868    9004     ASCII             20
-    Case itSubSecTime:                  s = "SubSecTime"                    'DateTime subseconds             SubSecTime                    37520    9290     ASCII             Any
-    Case itSubSecTimeOriginal:          s = "SubSecTimeOriginal"            'DateTimeOriginal subseconds     SubSecTimeOriginal            37521    9291     ASCII             Any
-    Case itSubSecTimeDigitized:         s = "SubSecTimeDigitized"           'DateTimeDigitized subseconds    SubSecTimeDigitized           37522    9292     ASCII             Any
-
-                                                                            'G. Tags Relating to Picture-Taking Conditions
-    Case itExposureTime:                s = "ExposureTime"                  'Exposure time                   ExposureTime                  33434    829A     RATIONAL          1
-    Case itFNumber:                     s = "FNumber"                       'F number                        FNumber                       33437    829D     RATIONAL          1
-    Case itExposureProgram:             s = "ExposureProgram"               'Exposure program                ExposureProgram               34850    8822     SHORT             1
-    Case itSpectralSensitivity:         s = "SpectralSensitivity"           'Spectral sensitivity            SpectralSensitivity           34852    8824     ASCII             Any
-    Case itISOSpeedRatings:             s = "ISOSpeedRatings"               'ISO speed rating                ISOSpeedRatings               34855    8827     SHORT             Any
-    Case itOECF:                        s = "OECF"                          'Optoelectric conversion factor  OECF                          34856    8828     UNDEFINED         Any
-    Case itShutterSpeedValue:           s = "ShutterSpeedValue"             'Shutter speed                   ShutterSpeedValue             37377    9201     SRATIONAL         1
-    Case itApertureValue:               s = "ApertureValue"                 'Aperture                        ApertureValue                 37378    9202     RATIONAL          1
-    Case itBrightnessValue:             s = "BrightnessValue"               'Brightness                      BrightnessValue               37379    9203     SRATIONAL         1
-    Case itExposureBiasValue:           s = "ExposureBiasValue"             'Exposure bias                   ExposureBiasValue             37380    9204     SRATIONAL         1
-    Case itMaxApertureValue:            s = "MaxApertureValue"              'Maximum lens aperture           MaxApertureValue              37381    9205     RATIONAL          1
-    Case itSubjectDistance:             s = "SubjectDistance"               'Subject distance                SubjectDistance               37382    9206     RATIONAL          1
-    Case itMeteringMode:                s = "MeteringMode"                  'Metering mode                   MeteringMode                  37383    9207     SHORT             1
-    Case itLightSource:                 s = "LightSource"                   'Light source                    LightSource                   37384    9208     SHORT             1
-    Case itFlash:                       s = "Flash"                         'Flash                           Flash                         37385    9209     SHORT             1
-    Case itFocalLength:                 s = "FocalLength"                   'Lens focal length               FocalLength                   37386    920A     RATIONAL          1
-    Case itSubjectArea:                 s = "SubjectArea"                   'Subject area                    SubjectArea                   37396    9214     SHORT             2 or 3 or 4
-    Case itFlashEnergy:                 s = "FlashEnergy"                   'Flash energy                    FlashEnergy                   41483    A20B     RATIONAL          1
-    Case itSpatialFrequencyResponse:    s = "SpatialFrequencyResponse"      'Spatial frequency response      SpatialFrequencyResponse      41484    A20C     UNDEFINED         Any
-    Case itFocalPlaneXResolution:       s = "FocalPlaneXResolution"         'Focal plane X resolution        FocalPlaneXResolution         41486    A20E     RATIONAL          1
-    Case itFocalPlaneYResolution:       s = "FocalPlaneYResolution"         'Focal plane Y resolution        FocalPlaneYResolution         41487    A20F     RATIONAL          1
-    Case itFocalPlaneResolutionUnit:    s = "FocalPlaneResolutionUnit"      'Focal plane resolution unit     FocalPlaneResolutionUnit      41488    A210     SHORT             1
-    Case itSubjectLocation:             s = "SubjectLocation"               'Subject location                SubjectLocation               41492    A214     SHORT             2
-    Case itExposureIndex:               s = "ExposureIndex"                 'Exposure index                  ExposureIndex                 41493    A215     RATIONAL          1
-    Case itSensingMethod:               s = "SensingMethod"                 'Sensing method                  SensingMethod                 41495    A217     SHORT             1
-    Case itFileSource:                  s = "FileSource"                    'File source                     FileSource                    41728    A300     UNDEFINED         1
-    Case itSceneType:                   s = "SceneType"                     'Scene type                      SceneType                     41729    A301     UNDEFINED         1
-    Case itCFAPattern:                  s = "CFAPattern"                    'CFA pattern                     CFAPattern                    41730    A302     UNDEFINED         Any
-    Case itCustomRendered:              s = "CustomRendered"                'Custom image processing         CustomRendered                41985    A401     SHORT             1
-    Case itExposureMode:                s = "ExposureMode"                  'Exposure mode                   ExposureMode                  41986    A402     SHORT             1
-    Case itWhiteBalance:                s = "WhiteBalance"                  'White balance                   WhiteBalance                  41987    A403     SHORT             1
-    Case itDigitalZoomRatio:            s = "DigitalZoomRatio"              'Digital zoom ratio              DigitalZoomRatio              41988    A404     RATIONAL          1
-    Case itFocalLengthIn35mmFilm:       s = "FocalLengthIn35mmFilm"         'Focal length in 35 mm film      FocalLengthIn35mmFilm         41989    A405     SHORT             1
-    Case itSceneCaptureType:            s = "SceneCaptureType"              'Scene capture type              SceneCaptureType              41990    A406     SHORT             1
-    Case itGainControl:                 s = "GainControl"                   'Gain control                    GainControl                   41991    A407     RATIONAL          1
-    Case itContrast:                    s = "Contrast"                      'Contrast                        Contrast                      41992    A408     SHORT             1
-    Case itSaturation:                  s = "Saturation"                    'Saturation                      Saturation                    41993    A409     SHORT             1
-    Case itSharpness:                   s = "Sharpness"                     'Sharpness                       Sharpness                     41994    A40A     SHORT             1
-    Case itDeviceSettingDescription:    s = "DeviceSettingDescription"      'Device settings description     DeviceSettingDescription      41995    A40B     UNDEFINED         Any
-    Case itSubjectDistanceRange:        s = "SubjectDistanceRange"          'Subject distance range          SubjectDistanceRange          41996    A40C     SHORT             1
-                                        
-                                                                            'H.other Tags
-    Case itImageUniqueID:               s = "ImageUniqueID"                 'Unique image ID                 ImageUniqueID                 42016    A420     ASCII             33
-    Case Else:                          s = "unkown"
+    Select Case e
+    Case TagGPS.itGPSVersionID:               s = "GPSVersionID"
+    Case TagGPS.itGPSLatitudeRef:             s = "GPSLatitudeRef"
+    Case TagGPS.itGPSLatitude:                s = "GPSLatitude"
+    Case TagGPS.itGPSLongitudeRef:            s = "GPSLongitudeRef"
+    Case TagGPS.itGPSLongitude:               s = "GPSLongitude"
+    Case TagGPS.itGPSAltitudeRef:             s = "GPSAltitudeRef"
+    Case TagGPS.itGPSAltitude:                s = "GPSAltitude"
+    Case TagGPS.itGPSTimeStamp:               s = "GPSTimeStamp"
+    Case TagGPS.itGPSSatellites:              s = "GPSSatellites"
+    Case TagGPS.itGPSStatus:                  s = "GPSStatus"
+    Case TagGPS.itGPSMeasureMode:             s = "GPSMeasureMode"
+    Case TagGPS.itGPSDOP:                     s = "GPSDOP"
+    Case TagGPS.itGPSSpeedRef:                s = "GPSSpeedRef"
+    Case TagGPS.itGPSSpeed:                   s = "GPSSpeed"
+    Case TagGPS.itGPSTrackRef:                s = "GPSTrackRef"
+    Case TagGPS.itGPSTrack:                   s = "GPSTrack"
+    Case TagGPS.itGPSImgDirectionRef:         s = "GPSImgDirectionRef"
+    Case TagGPS.itGPSImgDirection:            s = "GPSImgDirection"
+    Case TagGPS.itGPSMapDatum:                s = "GPSMapDatum"
+    Case TagGPS.itGPSDestLatitudeRef:         s = "GPSDestLatitudeRef"
+    Case TagGPS.itGPSDestLatitude:            s = "GPSDestLatitude"
+    Case TagGPS.itGPSDestLongitudeRef:        s = "GPSDestLongitudeRef"
+    Case TagGPS.itGPSDestLongitude:           s = "GPSDestLongitude"
+    Case TagGPS.itGPSDestBearingRef:          s = "GPSDestBearingRef"
+    Case TagGPS.itGPSDestBearing:             s = "GPSDestBearing"
+    Case TagGPS.itGPSDestDistanceRef:         s = "GPSDestDistanceRef"
+    Case TagGPS.itGPSDestDistance:            s = "GPSDestDistance"
+    Case TagGPS.itGPSProcessingMethod:        s = "GPSProcessingMethod"
+    Case TagGPS.itGPSAreaInformation:         s = "GPSAreaInformation"
+    Case TagGPS.itGPSDateStamp:               s = "GPSDateStamp"
+    Case TagGPS.itGPSDifferential:            s = "GPSDifferential"
+    
+    Case TagIF.itImageWidth:                  s = "ImageWidth"
+    Case TagIF.itImageLength:                 s = "ImageLength"
+    Case TagIF.itBitsPerSample:               s = "BitsPerSample"
+    Case TagIF.itCompression:                 s = "Compression"
+    Case TagIF.itPhotometricInterpretaion:    s = "PhotometricInterpretaion"
+    Case TagIF.itImageDescription:            s = "ImageDescription"
+    Case TagIF.itMaker:                       s = "Maker"
+    Case TagIF.itModel:                       s = "Model"
+    Case TagIF.itStripOffsets:                s = "StripOffsets"
+    Case TagIF.itOrientation:                 s = "Orientation"
+    Case TagIF.itSamplesPerPixel:             s = "SamplesPerPixel"
+    Case TagIF.itRowsPerStrip:                s = "RowsPerStrip"
+    Case TagIF.itStripByteCounts:             s = "StripByteCounts"
+    Case TagIF.itXResolution:                 s = "X-Resolution"
+    Case TagIF.itYResolution:                 s = "Y-Resolution"
+    Case TagIF.itPlanarConfiguration:         s = "PlanarConfiguration"
+    Case TagIF.itResolutionUnit:              s = "ResolutionUnit"
+    Case TagIF.itTransferFunction:            s = "TransferFunction"
+    Case TagIF.itSoftwareUsed:                s = "SoftwareUsed"
+    Case TagIF.itDateTime:                    s = "DateTime"
+    Case TagIF.itArtist:                      s = "Artist"
+    Case TagIF.itWhitePoint:                  s = "WhitePoint"
+    Case TagIF.itPrimaryChromaticities:       s = "PrimaryChromaticities"
+    Case TagIF.itJPEGInterchangeFormat:       s = "JPEGInterchangeFormat"
+    Case TagIF.itJPEGInterchangeFormatLength: s = "JPEGInterchangeFormatLength"
+    Case TagIF.itYCbCrCoefficients:           s = "YCbCrCoefficients"
+    Case TagIF.itYCbCrSubSampling:            s = "YCbCrSubSampling"
+    Case TagIF.itYCbCrPositioning:            s = "YCbCrPositioning"
+    Case TagIF.itReferenceBlackWhite:         s = "ReferenceBlackWhite"
+    Case TagIF.itCopyright:                   s = "Copyright"
+    
+    Case TagExif.itExposureTime:              s = "ExposureTime"
+    Case TagExif.itFNumber:                   s = "FNumber"
+    
+    Case TagIF.itIFDOffsetExif:               s = "IFDOffsetExif"
+    
+    Case TagExif.itExposureProgram:           s = "ExposureProgram"
+    Case TagExif.itSpectralSensitivity:       s = "SpectralSensitivity"
+    
+    Case TagIF.itIFDOffsetGPS:                s = "IFDOffsetGPS"
+        
+    Case TagExif.itISOSpeedRatings:           s = "ISOSpeedRatings"
+    Case TagExif.itOECF:                      s = "OECF"
+    Case TagExif.itSensitivityType:           s = "SensitivityType"
+    Case TagExif.itStandardOutputSensitivity: s = "StandardOutputSensitivity"
+    Case TagExif.itRecommendedExposureIndex:  s = "RecommendedExposureIndex"
+    Case TagExif.itISOSpeed:                  s = "ISOSpeed"
+    Case TagExif.itISOSpeedLatitudeYYY:       s = "ISOSpeedLatitudeYYY"
+    Case TagExif.itISOSpeedLatitudeZZZ:       s = "ISOSpeedLatitudeZZZ"
+    Case TagExif.itExifVersion:               s = "ExifVersion"
+    Case TagExif.itDateTimeOriginal:          s = "DateTimeOriginal"
+    Case TagExif.itDateTimeDigitized:         s = "DateTimeDigitized"
+    Case TagExif.itComponentsConfiguration:   s = "ComponentsConfiguration"
+    Case TagExif.itCompressedBitsPerPixel:    s = "CompressedBitsPerPixel"
+    Case TagExif.itShutterSpeedValue:         s = "ShutterSpeedValue"
+    Case TagExif.itApertureValue:             s = "ApertureValue"
+    Case TagExif.itBrightnessValue:           s = "BrightnessValue"
+    Case TagExif.itExposureBiasValue:         s = "ExposureBiasValue"
+    Case TagExif.itMaxApertureValue:          s = "MaxApertureValue"
+    Case TagExif.itSubjectDistance:           s = "SubjectDistance"
+    Case TagExif.itMeteringMode:              s = "MeteringMode"
+    Case TagExif.itLightSource:               s = "LightSource"
+    Case TagExif.itFlash:                     s = "Flash"
+    Case TagExif.itFocalLength:               s = "FocalLength"
+    Case TagExif.itSubjectArea:               s = "SubjectArea"
+    Case TagExif.itMakerNote:                 s = "MakerNote"
+    Case TagExif.itUserComment:               s = "UserComment"
+    Case TagExif.itSubSecTime:                s = "SubSecTime"
+    Case TagExif.itSubSecTimeOriginal:        s = "SubSecTimeOriginal"
+    Case TagExif.itSubSecTimeDigitized:       s = "SubSecTimeDigitized"
+    Case TagExif.itFlashpixVersion:           s = "FlashpixVersion"
+    Case TagExif.itColorSpace:                s = "ColorSpace"
+    Case TagExif.itPixelXDimension:           s = "PixelXDimension"
+    Case TagExif.itPixelYDimension:           s = "PixelYDimension"
+    Case TagExif.itRelatedSoundFile:          s = "RelatedSoundFile"
+    
+    Case TagIF.itIFDOffsetInterop:            s = "IFDOffsetInterop"
+    
+    Case TagExif.itFlashEnergy:               s = "FlashEnergy"
+    Case TagExif.itSpatialFrequencyResponse:  s = "SpatialFrequencyResponse"
+    Case TagExif.itFocalPlaneXResolution:     s = "FocalPlaneXResolution"
+    Case TagExif.itFocalPlaneYResolution:     s = "FocalPlaneYResolution"
+    Case TagExif.itFocalPlaneResolutionUnit:  s = "FocalPlaneResolutionUnit"
+    Case TagExif.itSubjectLocation:           s = "SubjectLocation"
+    Case TagExif.itExposureIndex:             s = "ExposureIndex"
+    Case TagExif.itSensingMethod:             s = "SensingMethod"
+    Case TagExif.itFileSource:                s = "FileSource"
+    Case TagExif.itSceneType:                 s = "SceneType"
+    Case TagExif.itCFAPattern:                s = "CFAPattern"
+    Case TagExif.itCustomRendered:            s = "CustomRendered"
+    Case TagExif.itExposureMode:              s = "ExposureMode"
+    Case TagExif.itWhiteBalance:              s = "WhiteBalance"
+    Case TagExif.itDigitalZoomRatio:          s = "DigitalZoomRatio"
+    Case TagExif.itFocalLengthIn35mmFilm:     s = "FocalLengthIn35mmFilm"
+    Case TagExif.itSceneCaptureType:          s = "SceneCaptureType"
+    Case TagExif.itGainControl:               s = "GainControl"
+    Case TagExif.itContrast:                  s = "Contrast"
+    Case TagExif.itSaturation:                s = "Saturation"
+    Case TagExif.itSharpness:                 s = "Sharpness"
+    Case TagExif.itDeviceSettingDescription:  s = "DeviceSettingDescription"
+    Case TagExif.itSubjectDistanceRange:      s = "SubjectDistanceRange"
+    Case TagExif.itImageUniqueID:             s = "ImageUniqueID"
+    Case TagExif.itCameraOwnerName:           s = "CameraOwnerName"
+    Case Else: s = "unknown"
     End Select
     TagExif_ToStr = s & Space(MaxTagStrLen - Len(s))
 End Function
-
-
-Public Function IFDExif_ToStr(this As IFD, Optional ByVal Index As Long) As String
-Try: On Error GoTo Catch
-    Dim i As Long
-    Dim s As String, c As String
-    Dim dt As IFDataType
-    With this
-        s = s & "Count: " & CStr(.Count) & vbCrLf
-        s = s & " Nr:  Tag-Name                     Tag-ID  Type                Count  Offset  Value" & vbCrLf
-        For i = 0 To .Count - 1
-            c = CStr(i)
-            s = s & Space(3 - Len(c)) & c & ": "
-            s = s & IFDExifEntryValue_ToStr(.Entries(i)) & vbCrLf
-        Next
-        s = s & "OffsetNextIFD: " & CStr(.OffsetNextIFD) & vbCrLf
-    End With
-    IFDExif_ToStr = s
-    Exit Function
-Catch: ErrHandler "IFDExif_ToStr", s
-End Function
-Public Function IFDExifEntryValue_ToStr(this As IFDEntryValue) As String
-Try: On Error GoTo Catch
-    Dim s As String, c As String
-    Dim dt As IFDataType
-    With this
-        With .Entry
-            c = "&H" & Hex$(.Tag)
-            s = s & " " & TagExif_ToStr(.Tag) & Space(7 - Len(c)) & c & "  "
-            s = s & IFDataType_ToStr(.DataType) & "  "
-            c = CStr(.Count)
-            s = s & Space(6 - Len(c)) & c & "    "
-            dt = .DataType
-        End With
-        'in zwei Schritten zuerst ob Offset geschrieben werden soll
-        c = vbNullString
-        Select Case dt
-        Case IFDataType.dtASCII, IFDataType.dtByte, IFDataType.dtSByte, IFDataType.dtUndefined2
-            If .Entry.Count > 4 Then
-                c = CStr(.Entry.ValueOffset)
-            End If
-        Case IFDataType.dtShort, IFDataType.dtSShort
-            If .Entry.Count > 2 Then
-                c = CStr(.Entry.ValueOffset)
-            End If
-        Case IFDataType.dtFloat, IFDataType.dtLong, IFDataType.dtSLong
-            If .Entry.Count > 1 Then
-                c = CStr(.Entry.ValueOffset)
-            End If
-        Case IFDataType.dtRational, IFDataType.dtSRational, IFDataType.dtDouble
-            c = CStr(.Entry.ValueOffset)
-        End Select
-        'dann den Wert dazuschreiben
-        s = s & Space(4 - Len(c)) & c & "  "
-        Dim v As Variant
-        v = MExif.IFDEntryValue_GetValue(this)
-        If IsArray(v) Then
-            s = s & IFValueArray_ToStr(dt, v)
-        Else
-            Select Case dt
-            Case IFDataType.dtRational, IFDataType.dtSRational
-                s = s & IFRational_ToStr(v)
-            Case IFDataType.dtASCII
-                s = s & """" & v & """"
-            Case Else
-                s = s & CStr(v)
-            End Select
-        End If
-    End With
-    IFDExifEntryValue_ToStr = s
-    Exit Function
-Catch: ErrHandler "IFDExifEntryValue_ToStr", s
-End Function
-
-
-'##############################'   Locale ErrHandler   '##############################'
-Private Function ErrHandler(ByVal FncName As String, _
-                            Optional ByVal AddInfo As String, _
-                            Optional ByVal bLoud As Boolean = True, _
-                            Optional ByVal bErrLog As Boolean = False, _
-                            Optional ByVal vbDecor As VbMsgBoxStyle = vbOKOnly Or vbCritical _
-                            ) As VbMsgBoxResult
-    ErrHandler = MError.ErrHandler("MExif", FncName, AddInfo, bLoud, bErrLog, vbDecor)
-End Function
-'Private Function PErrHandler(ByVal FncName As String, ByVal AddErrMsg As String, Optional ByVal Buttons As VbMsgBoxStyle = vbOKOnly) As VbMsgBoxResult
-'    PErrHandler = MError.ErrHandler("MGPSTag", FncName, AddErrMsg, Buttons)
-'End Function
-'
-'

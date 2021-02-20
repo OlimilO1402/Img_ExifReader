@@ -10,6 +10,14 @@ Begin VB.Form FrmMain
    ScaleHeight     =   7695
    ScaleWidth      =   12975
    StartUpPosition =   3  'Windows-Standard
+   Begin VB.CommandButton Command1 
+      Caption         =   "Command1"
+      Height          =   375
+      Left            =   720
+      TabIndex        =   3
+      Top             =   120
+      Width           =   735
+   End
    Begin VB.ComboBox CBFileName 
       Height          =   315
       ItemData        =   "Form1.frx":0000
@@ -43,10 +51,10 @@ Begin VB.Form FrmMain
    Begin VB.CommandButton BtnRead 
       Caption         =   "Read"
       Height          =   375
-      Left            =   120
+      Left            =   0
       TabIndex        =   0
       Top             =   120
-      Width           =   1335
+      Width           =   615
    End
 End
 Attribute VB_Name = "FrmMain"
@@ -56,6 +64,55 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 Private m_IFFile As TaggedImageFile
+'
+
+'Private Sub Command1_Click()
+'    'Dim l As Integer: l = -32768
+'    'Dim u As Integer: u = 32767
+'    ReDim tags(0 To 65535) As String
+'    Dim i As Integer
+'    Dim s As String
+'    'Dim s1 As String
+'    'Dim s2 As String
+'    'Dim s3 As String
+'    'On Error Resume Next
+'
+'    Dim maxL As Long
+'    Dim ui As Long
+'    For ui = 0 To 65535
+'
+'        i = CInt("&H" & Hex(ui))
+'
+'        s = ""
+'
+'        s = Trim(MTagExif.TagExif_ToStr(i))
+'        If s = "unknown" Then
+'            s = Trim(MTagGPS.TagGPS_ToStr(i))
+'            If s = "unknown" Then
+'                s = Trim(MTagIF.TagIF_ToStr(i))
+'                If s = "unknown" Then
+'                    s = ""
+'                Else
+'                    s = "TagIF.it" & s
+'                End If
+'            Else
+'                s = "TagGPS.it" & s
+'            End If
+'        Else
+'            s = "TagExif.it" & s
+'        End If
+'        If Len(s) Then s = "    Case " & s & " = &H" & Hex(i) & ":" & Space(37 - Len(s)) & "s = " & """" & s & """" & vbCrLf
+'        tags(ui) = s
+'
+'    Next
+'
+'
+'    s = "    Select Case e" & vbCrLf
+'    s = s & Join(tags, "")
+'    s = s & "    End Select"
+'    TBExifData.Text = s & vbCrLf
+'
+'End Sub
 '
 
 Private Sub Form_Load()
@@ -75,7 +132,7 @@ Private Sub Form_Load()
         .AddItem p1 & "olympus-d320l.jpg" 'only JFIF no Exif-data
         .AddItem p1 & "sanyo-vpcg250.jpg"
         .AddItem p1 & "sanyo-vpcsx550.jpg"
-        .AddItem p1 & "sony_DSC-HX400V"
+        .AddItem p1 & "sony_DSC-HX400V.jpg"
         .AddItem p1 & "sony-cybershot.jpg"
         
         .AddItem p2 & "fujifilm-finepix40i.jpg"
@@ -90,14 +147,14 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Resize()
-    Dim L As Single, t As Single, W As Single, H As Single
+    Dim l As Single, t As Single, W As Single, H As Single
     Dim brdr As Single: brdr = 8 * Screen.TwipsPerPixelX
-    L = CBFileName.Left:          t = CBFileName.Top
-    W = Me.ScaleWidth - L - brdr: H = CBFileName.Height
-    If W > 0 And H > 0 Then CBFileName.Move L, t, W ', H
-    L = TBExifData.Left:          t = TBExifData.Top: brdr = 0
-    W = Me.ScaleWidth - L - brdr: H = Me.ScaleHeight - t - brdr
-    If W > 0 And H > 0 Then TBExifData.Move L, t, W, H
+    l = CBFileName.Left:          t = CBFileName.Top
+    W = Me.ScaleWidth - l - brdr: H = CBFileName.Height
+    If W > 0 And H > 0 Then CBFileName.Move l, t, W ', H
+    l = TBExifData.Left:          t = TBExifData.Top: brdr = 0
+    W = Me.ScaleWidth - l - brdr: H = Me.ScaleHeight - t - brdr
+    If W > 0 And H > 0 Then TBExifData.Move l, t, W, H
 End Sub
 
 Private Sub CBFileName_Click()
