@@ -10,14 +10,6 @@ Begin VB.Form FrmMain
    ScaleHeight     =   7695
    ScaleWidth      =   12975
    StartUpPosition =   3  'Windows-Standard
-   Begin VB.CommandButton Command1 
-      Caption         =   "Command1"
-      Height          =   375
-      Left            =   720
-      TabIndex        =   3
-      Top             =   120
-      Width           =   735
-   End
    Begin VB.ComboBox CBFileName 
       Height          =   315
       ItemData        =   "Form1.frx":0000
@@ -51,10 +43,10 @@ Begin VB.Form FrmMain
    Begin VB.CommandButton BtnRead 
       Caption         =   "Read"
       Height          =   375
-      Left            =   0
+      Left            =   120
       TabIndex        =   0
       Top             =   120
-      Width           =   615
+      Width           =   1335
    End
 End
 Attribute VB_Name = "FrmMain"
@@ -65,6 +57,7 @@ Attribute VB_Exposed = False
 Option Explicit
 Private m_IFFile As TaggedImageFile
 '
+
 
 'Private Sub Command1_Click()
 '    'Dim l As Integer: l = -32768
@@ -105,7 +98,6 @@ Private m_IFFile As TaggedImageFile
 '        tags(ui) = s
 '
 '    Next
-'
 '
 '    s = "    Select Case e" & vbCrLf
 '    s = s & Join(tags, "")
