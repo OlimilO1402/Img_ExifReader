@@ -143,16 +143,17 @@ Public Property Let IFHeader_Endianness(ByRef this As IFHeader, ByVal RHS As EEn
         End If
     End With
 End Property
-Public Property Get IFHeader_IsEqual(this As IFHeader, other As IFHeader) As Boolean
-    Dim B As Boolean
+Public Property Get IFHeader_Equals(this As IFHeader, other As IFHeader) As Boolean
+    Dim b As Boolean
     With this
-        B = .ByteOrder(0) = other.ByteOrder(0): If Not B Then Exit Property
-        B = .ByteOrder(1) = other.ByteOrder(1): If Not B Then Exit Property
-        B = .IFId01 = other.IFId01:             If Not B Then Exit Property
+        b = .ByteOrder(0) = other.ByteOrder(0): If Not b Then Exit Property
+        b = .ByteOrder(1) = other.ByteOrder(1): If Not b Then Exit Property
+        b = .IFId01 = other.IFId01:             If Not b Then Exit Property
         'B = .IFId01(0) = other.IFId(0): If Not B Then Exit Property
         'B = .IFId(1) = other.IFId(1): If Not B Then Exit Property
-        B = .OffsetIFD0 = other.OffsetIFD0:     If Not B Then Exit Property
+        b = .OffsetIFD0 = other.OffsetIFD0:     If Not b Then Exit Property
     End With
+    IFHeader_Equals = True
 End Property
 ' ^ ############################## ^ '    IFHeader    ' ^ ############################## ^ '
 
@@ -198,6 +199,20 @@ Try: On Error GoTo Catch
     Exit Property
 Catch: ErrHandler "IFD_ValueByTag", """" & CStr(IFD_ValueByTag) & """"
 End Property
+
+Public Function IFD_Equals(this As IFD, other As IFD) As Boolean
+    Dim b As Boolean
+    With this
+        b = .Count = other.Count:                                    If Not b Then Exit Function
+        Dim i As Long
+        For i = 0 To .Count - 1
+            b = IFDEntryValue_Equals(.Entries(i), other.Entries(i)): If Not b Then Exit Function
+        Next
+        b = .OffsetNextIFD = other.OffsetNextIFD:                    If Not b Then Exit Function
+    End With
+    IFD_Equals = True
+End Function
+
 ' ^ ############################## ^ '      IFD       ' ^ ############################## ^ '
 
 ' v ############################## v ' IFDEntryValue  ' v ############################## v '
@@ -372,9 +387,9 @@ Try: On Error GoTo Catch
                 RetVarVal = CByte(.Value)
             ElseIf .Entry.Count <= 4 Then
                 'das Array erst erzeugen und die einzelnen Elemente aus dem ValueOffset rauslesen
-                ReDim B(0 To .Entry.Count - 1) As Byte
-                Call CopyMem(ByVal VarPtr(B(0)), .Entry.ValueOffset, .Entry.Count)
-                RetVarVal = B 'v
+                ReDim b(0 To .Entry.Count - 1) As Byte
+                Call CopyMem(ByVal VarPtr(b(0)), .Entry.ValueOffset, .Entry.Count)
+                RetVarVal = b 'v
             Else 'if .Entry.Count
                 'es wird ein Array von Daten übergeben
                 RetVarVal = .Value
@@ -420,10 +435,31 @@ Try: On Error GoTo Catch
     Exit Function
 Catch: ErrHandler "IFDEntryValue_GetValue", RetVarVal
 End Function
-Public Function IFDEntryValue_IsEqual(this As IFDEntryValue, other As IFDEntryValue) As Boolean
+Public Function IFDEntryValue_Equals(this As IFDEntryValue, other As IFDEntryValue) As Boolean
+    Dim b As Boolean
     With this
-        '.Entry
+        With .Entry
+            b = .Count = other.Entry.Count:             If Not b Then Exit Function
+            b = .DataType = other.Entry.DataType:       If Not b Then Exit Function
+            b = .Tag = other.Entry.Tag:                 If Not b Then Exit Function
+            b = .ValueOffset = other.Entry.ValueOffset: If Not b Then Exit Function
+        End With
+        If IsArray(.Value) Then
+            b = IsArray(other.Value):                   If Not b Then Exit Function
+            Dim l As Long: l = LBound(.Value)
+            b = l = LBound(other.Value):                If Not b Then Exit Function
+            Dim u As Long: u = UBound(.Value)
+            b = u = UBound(other.Value):                If Not b Then Exit Function
+            Dim i As Long
+            For i = l To u
+                b = .Value(i) = other.Value(i):         If Not b Then Exit Function
+            Next
+        Else
+            b = Not IsArray(other.Value):               If Not b Then Exit Function
+            b = .Value = other.Value:                   If Not b Then Exit Function
+        End If
     End With
+    IFDEntryValue_Equals = True
 End Function
 ' ^ ############################## ^ ' IFDEntryValue  ' ^ ############################## ^ '
 

@@ -124,8 +124,13 @@ Catch:
     If Err Then ErrHandler "ToStr", s
 End Function
 
-Public Function IsEQual(other As TaggedImageFile) As Boolean
-    '
+Public Function Equals(other As TaggedImageFile) As Boolean
+    Equals = MExif.IFHeader_Equals(m_IFHeader, other.IFHeader):  If Not Equals Then Exit Function
+    Equals = MExif.IFD_Equals(m_IFD_0, other.IFD0):              If Not Equals Then Exit Function
+    Equals = MExif.IFD_Equals(m_IFD_Exif, other.IFDExif):        If Not Equals Then Exit Function
+    Equals = MExif.IFD_Equals(m_IFD_GPS, other.IFDGPS):          If Not Equals Then Exit Function
+    Equals = MExif.IFD_Equals(m_IFD_Interop, other.IFDInterop):  If Not Equals Then Exit Function
+    Equals = MExif.IFD_Equals(m_IFD_1, other.IFD1):              If Not Equals Then Exit Function
 End Function
 
 '##############################'   Locale ErrHandler   '##############################'

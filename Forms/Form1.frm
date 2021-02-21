@@ -5,16 +5,25 @@ Begin VB.Form FrmMain
    ClientLeft      =   60
    ClientTop       =   450
    ClientWidth     =   12975
+   Icon            =   "Form1.frx":0000
    LinkTopic       =   "Form1"
    OLEDropMode     =   1  'Manuell
    ScaleHeight     =   7695
    ScaleWidth      =   12975
    StartUpPosition =   3  'Windows-Standard
+   Begin VB.CommandButton BtnEquals 
+      Caption         =   "Equals"
+      Height          =   375
+      Left            =   840
+      TabIndex        =   3
+      Top             =   120
+      Width           =   735
+   End
    Begin VB.ComboBox CBFileName 
       Height          =   315
-      ItemData        =   "Form1.frx":0000
+      ItemData        =   "Form1.frx":1782
       Left            =   1560
-      List            =   "Form1.frx":0002
+      List            =   "Form1.frx":1784
       TabIndex        =   2
       ToolTipText     =   "Select or dragdrop file here"
       Top             =   120
@@ -43,10 +52,10 @@ Begin VB.Form FrmMain
    Begin VB.CommandButton BtnRead 
       Caption         =   "Read"
       Height          =   375
-      Left            =   120
+      Left            =   0
       TabIndex        =   0
       Top             =   120
-      Width           =   1335
+      Width           =   855
    End
 End
 Attribute VB_Name = "FrmMain"
@@ -58,6 +67,27 @@ Option Explicit
 Private m_IFFile As TaggedImageFile
 '
 
+
+Private Sub BtnEquals_Click()
+    Dim dt As Single: dt = Timer
+    Dim p   As String:  p = App.Path & "\Resources\Exif.org\examples\"
+    Dim p1  As String: p1 = p & "IntelLittleEndian\"
+    Dim p2  As String: p2 = p & "MotorolaBigEndian\"
+
+    Dim PFN1 As String: PFN1 = p1 & "sony_DSC-HX400V.jpg" '"canon-ixus.jpg"
+    Dim PFN2 As String: PFN2 = p2 & "sony_DSC-HX400V_testingEquals.jpg" '"kodak-dc210.jpg" '"canon-ixus.jpg"
+    
+    Dim tif1 As TaggedImageFile: Set tif1 = MNew.TaggedImageFile(PFN1)
+    Dim tif2 As TaggedImageFile: Set tif2 = MNew.TaggedImageFile(PFN2)
+    tif1.Read: tif2.Read
+    Dim B As Boolean: B = tif1.Equals(tif2)
+    dt = Timer - dt
+    MsgBox "Sind die beiden Dateien gleich? " & B & vbCrLf & dt
+    
+    'ca 0,04 sek
+    '=> ca 25 Bilder / sek
+    
+End Sub
 
 'Private Sub Command1_Click()
 '    'Dim l As Integer: l = -32768
