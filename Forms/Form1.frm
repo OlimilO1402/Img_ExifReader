@@ -31,7 +31,7 @@ Begin VB.Form FrmMain
    End
    Begin VB.TextBox TBExifData 
       BeginProperty Font 
-         Name            =   "Courier New"
+         Name            =   "Consolas"
          Size            =   9.75
          Charset         =   0
          Weight          =   400
