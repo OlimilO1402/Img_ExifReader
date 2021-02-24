@@ -11,23 +11,23 @@ Begin VB.Form FrmMain
    ScaleHeight     =   7695
    ScaleWidth      =   12975
    StartUpPosition =   3  'Windows-Standard
-   Begin VB.CommandButton BtnEquals 
-      Caption         =   "Equals"
+   Begin VB.CommandButton BtnRead 
+      Caption         =   "Read"
       Height          =   375
-      Left            =   840
-      TabIndex        =   3
-      Top             =   120
-      Width           =   735
+      Left            =   15
+      TabIndex        =   0
+      Top             =   60
+      Width           =   1095
    End
    Begin VB.ComboBox CBFileName 
       Height          =   315
       ItemData        =   "Form1.frx":1782
-      Left            =   1560
+      Left            =   1110
       List            =   "Form1.frx":1784
       TabIndex        =   2
       ToolTipText     =   "Select or dragdrop file here"
-      Top             =   120
-      Width           =   6255
+      Top             =   90
+      Width           =   6735
    End
    Begin VB.TextBox TBExifData 
       BeginProperty Font 
@@ -49,14 +49,6 @@ Begin VB.Form FrmMain
       Top             =   480
       Width           =   7815
    End
-   Begin VB.CommandButton BtnRead 
-      Caption         =   "Read"
-      Height          =   375
-      Left            =   0
-      TabIndex        =   0
-      Top             =   120
-      Width           =   855
-   End
 End
 Attribute VB_Name = "FrmMain"
 Attribute VB_GlobalNameSpace = False
@@ -68,26 +60,26 @@ Private m_IFFile As TaggedImageFile
 '
 
 
-Private Sub BtnEquals_Click()
-    Dim dt As Single: dt = Timer
-    Dim p   As String:  p = App.Path & "\Resources\Exif.org\examples\"
-    Dim p1  As String: p1 = p & "IntelLittleEndian\"
-    Dim p2  As String: p2 = p & "MotorolaBigEndian\"
-
-    Dim PFN1 As String: PFN1 = p1 & "sony_DSC-HX400V.jpg" '"canon-ixus.jpg"
-    Dim PFN2 As String: PFN2 = p2 & "sony_DSC-HX400V_testingEquals.jpg" '"kodak-dc210.jpg" '"canon-ixus.jpg"
-    
-    Dim tif1 As TaggedImageFile: Set tif1 = MNew.TaggedImageFile(PFN1)
-    Dim tif2 As TaggedImageFile: Set tif2 = MNew.TaggedImageFile(PFN2)
-    tif1.Read: tif2.Read
-    Dim B As Boolean: B = tif1.Equals(tif2)
-    dt = Timer - dt
-    MsgBox "Sind die beiden Dateien gleich? " & B & vbCrLf & dt
-    
-    'ca 0,04 sek
-    '=> ca 25 Bilder / sek
-    
-End Sub
+'Private Sub BtnEquals_Click()
+'    Dim dt As Single: dt = Timer
+'    Dim p   As String:  p = App.Path & "\Resources\Exif.org\examples\"
+'    Dim p1  As String: p1 = p & "IntelLittleEndian\"
+'    Dim p2  As String: p2 = p & "MotorolaBigEndian\"
+'
+'    Dim PFN1 As String: PFN1 = p1 & "sony_DSC-HX400V.jpg" '"canon-ixus.jpg"
+'    Dim PFN2 As String: PFN2 = p2 & "sony_DSC-HX400V_testingEquals.jpg" '"kodak-dc210.jpg" '"canon-ixus.jpg"
+'
+'    Dim tif1 As TaggedImageFile: Set tif1 = MNew.TaggedImageFile(PFN1)
+'    Dim tif2 As TaggedImageFile: Set tif2 = MNew.TaggedImageFile(PFN2)
+'    tif1.Read: tif2.Read
+'    Dim B As Boolean: B = tif1.Equals(tif2)
+'    dt = Timer - dt
+'    MsgBox "Sind die beiden Dateien gleich? " & B & vbCrLf & dt
+'
+'    'ca 0,04 sek
+'    '=> ca 25 Bilder / sek
+'
+'End Sub
 
 'Private Sub Command1_Click()
 '    'Dim l As Integer: l = -32768
@@ -170,10 +162,11 @@ End Sub
 
 Private Sub Form_Resize()
     Dim l As Single, t As Single, W As Single, H As Single
-    Dim brdr As Single: brdr = 8 * Screen.TwipsPerPixelX
-    l = CBFileName.Left:          t = CBFileName.Top
+    Dim brdr As Single: brdr = 1 * Screen.TwipsPerPixelX
+    l = brdr: t = BtnRead.Top: BtnRead.Move l, t
+    l = BtnRead.Left + BtnRead.Width + brdr: t = CBFileName.Top
     W = Me.ScaleWidth - l - brdr: H = CBFileName.Height
-    If W > 0 And H > 0 Then CBFileName.Move l, t, W ', H
+    If W > 0 And H > 0 Then CBFileName.Move l, t, W
     l = TBExifData.Left:          t = TBExifData.Top: brdr = 0
     W = Me.ScaleWidth - l - brdr: H = Me.ScaleHeight - t - brdr
     If W > 0 And H > 0 Then TBExifData.Move l, t, W, H
@@ -193,6 +186,7 @@ Private Sub BtnRead_Click()
     Else
         Dim e As String: e = MError.LastError
         If Len(e) Then MsgBox e
+        TBExifData.Text = "No exif data"
         'If Len(m_IFFile.ErrorInfo) Then MsgBox m_IFFile.ErrorInfo
     End If
 End Sub
