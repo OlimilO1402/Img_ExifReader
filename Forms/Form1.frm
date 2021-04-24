@@ -59,7 +59,6 @@ Option Explicit
 Private m_IFFile As TaggedImageFile
 '
 
-
 'Private Sub BtnEquals_Click()
 '    Dim dt As Single: dt = Timer
 '    Dim p   As String:  p = App.Path & "\Resources\Exif.org\examples\"
@@ -195,6 +194,16 @@ End Sub
 Private Sub CBFileName_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
     OnOLEDragDrop Data, Effect, Button, Shift, X, Y
 End Sub
+
+Private Sub TBExifData_DblClick()
+    CBFileName_DblClick
+End Sub
+
+Private Sub CBFileName_DblClick()
+    Form2.Show
+    Form2.ShowPicture CBFileName.Text
+End Sub
+
 Private Sub TBExifData_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
     OnOLEDragDrop Data, Effect, Button, Shift, X, Y
 End Sub
