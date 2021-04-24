@@ -17,8 +17,11 @@ Option Explicit
 ' zum Bild gehörende beschreibende im Bild integrierte Daten die bei
 ' Weitergabe des Bildes mit dem Bild verknüpft bleiben sollen.
 ' die Klasse soll Lese -und Schreibzugriffe auf diese Daten bereitstellen
-' Bilder im Format mit der Endung *.tif und *.jpg
+' Bilder im Format mit der Endung *.tif, und *.jpg (=jfif+jpeg)
 '
+'https://de.wikipedia.org/wiki/Tagged_Image_File_Format
+'https://de.wikipedia.org/wiki/JPEG_File_Interchange_Format
+'https://de.wikipedia.org/wiki/JPEG
 Private m_FileName    As String
 Private m_IFHeader    As IFHeader
 Private m_IFD_0       As IFD
@@ -34,47 +37,72 @@ End Sub
 
 Public Function Read() As Boolean
 Try: On Error GoTo Finally
-    
-    Dim OffsetExif       As Long
-    Dim OffsetIFHeader   As Long
-    Dim OffsetIFDExif    As Long
-    Dim OffsetIFDGPS     As Long
-    Dim OffsetIFDInterop As Long
-    
+        
     Dim ebr As FilEBinReader: Set ebr = MNew.FilEBinReader(m_FileName)
     
-    OffsetExif = MExif.GetPosition(ebr, MExif.C_ExifHeader)
-    If OffsetExif < 0 Then
-        ErrHandler "Read", "Exif-tag not found.", False
-        Exit Function
+    'ebr.Position = 1
+    Dim OffsetJfif       As Long
+    OffsetJfif = MExif.GetPosition(ebr, MJFIF.C_JFIFHeader)
+    If OffsetJfif > 0 Then
+        Read = ReadJFIF(OffsetJfif, ebr)
+    Else
+        ebr.Position = 1
+        Dim OffsetExif       As Long
+        OffsetExif = MExif.GetPosition(ebr, MExif.C_ExifHeader)
+        If OffsetExif > 0 Then
+            Read = ReadExif(OffsetExif, ebr)
+        Else
+            ErrHandler "Read", "Exif-tag not found.", False
+            Exit Function
+        End If
     End If
-    
-    OffsetIFHeader = Align4(OffsetExif + Len(MExif.C_ExifHeader))           'must be a multiple of 4 +1!
-    If OffsetIFHeader >= 0 Then _
-        Read = ReadIFHeader(m_IFHeader, ebr, OffsetIFHeader)
-    'm_IFHeader.OffsetIFD0
-    Read = ReadIFD(m_IFD_0, ebr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
-    
-    OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itIFDOffsetExif)
-    If OffsetIFDExif <> 0 Then _
-        Read = ReadIFD(m_IFD_Exif, ebr, OffsetIFDExif, OffsetIFHeader)
-    
-    OffsetIFDGPS = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itIFDOffsetGPS)
-    If OffsetIFDGPS <> 0 Then _
-        Read = ReadIFD(m_IFD_GPS, ebr, OffsetIFDGPS, OffsetIFHeader)
-    
-    OffsetIFDInterop = MExif.IFD_ValueByTag(m_IFD_Exif, TagIF.itIFDOffsetInterop)
-    If OffsetIFDInterop <> 0 Then _
-        Read = ReadIFD(m_IFD_Interop, ebr, OffsetIFDInterop, OffsetIFHeader)
-    
-    If m_IFD_0.OffsetNextIFD <> 0 Then _
-        Read = ReadIFD(m_IFD_1, ebr, m_IFD_0.OffsetNextIFD, OffsetIFHeader)
     
     Read = True
 Finally:
     ebr.CClose
     If Err <> 0 Then ErrHandler "Read", """" & m_FileName & """" '& vbclrf
 End Function
+
+Private Function ReadJFIF(ByVal OffsetJfif As Long, ebr As FilEBinReader) As Boolean
+    
+End Function
+
+Private Function ReadExif(ByVal OffsetExif As Long, ebr As FilEBinReader) As Boolean
+
+Try: On Error GoTo Catch
+    
+    Dim OffsetIFHeader   As Long
+    Dim OffsetIFDExif    As Long
+    Dim OffsetIFDGPS     As Long
+    Dim OffsetIFDInterop As Long
+    
+    Dim B As Boolean
+    
+    OffsetIFHeader = Align4(OffsetExif + Len(MExif.C_ExifHeader)) 'must be a multiple of 4 +1!
+    If OffsetIFHeader >= 0 Then _
+        B = ReadIFHeader(m_IFHeader, ebr, OffsetIFHeader)
+    'm_IFHeader.OffsetIFD0
+    B = ReadIFD(m_IFD_0, ebr, m_IFHeader.OffsetIFD0, OffsetIFHeader)
+    
+    OffsetIFDExif = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itIFDOffsetExif)
+    If OffsetIFDExif <> 0 Then _
+        B = ReadIFD(m_IFD_Exif, ebr, OffsetIFDExif, OffsetIFHeader)
+    
+    OffsetIFDGPS = MExif.IFD_ValueByTag(m_IFD_0, TagIF.itIFDOffsetGPS)
+    If OffsetIFDGPS <> 0 Then _
+        B = ReadIFD(m_IFD_GPS, ebr, OffsetIFDGPS, OffsetIFHeader)
+    
+    OffsetIFDInterop = MExif.IFD_ValueByTag(m_IFD_Exif, TagIF.itIFDOffsetInterop)
+    If OffsetIFDInterop <> 0 Then _
+        B = ReadIFD(m_IFD_Interop, ebr, OffsetIFDInterop, OffsetIFHeader)
+    
+    If m_IFD_0.OffsetNextIFD <> 0 Then _
+        B = ReadIFD(m_IFD_1, ebr, m_IFD_0.OffsetNextIFD, OffsetIFHeader)
+    ReadExif = B
+    Exit Function
+Catch:
+End Function
+
 
 Friend Property Get IFHeader() As IFHeader
     IFHeader = m_IFHeader

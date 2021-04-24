@@ -69,6 +69,8 @@ Try: On Error GoTo Catch
     Get m_FNr, , ReadInt16
     If m_se = m_en Then Exit Function
     SwapByteOrder16 ReadInt16
+    
+    
     Exit Function
 Catch: ErrHandler "ReadInt16"
 End Function

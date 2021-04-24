@@ -156,6 +156,7 @@ Private Sub Form_Load()
         .AddItem p2 & "nikon-e950.jpg"    'JFIF with Exif-data
         .AddItem p2 & "ricoh-rdc5300.jpg"
         .AddItem p2 & "sony-d700.jpg"
+        .ListIndex = 16
     End With
     'CBFileName.ListIndex = 0
 End Sub
