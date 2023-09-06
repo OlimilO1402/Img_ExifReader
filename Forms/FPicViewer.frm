@@ -1,5 +1,5 @@
 VERSION 5.00
-Begin VB.Form FrmPicViewer 
+Begin VB.Form FPicViewer 
    Caption         =   "PicViewer"
    ClientHeight    =   7215
    ClientLeft      =   120
@@ -19,7 +19,7 @@ Begin VB.Form FrmPicViewer
       Width           =   9975
    End
 End
-Attribute VB_Name = "FrmPicViewer"
+Attribute VB_Name = "FPicViewer"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True

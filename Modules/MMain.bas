@@ -8,7 +8,7 @@ End Enum
 
 
 Sub Main()
-    FrmMain.Show
+    FMain.Show
 End Sub
 
 Public Property Get SystemEndianness() As EEndianness
