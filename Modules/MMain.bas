@@ -23,12 +23,12 @@ Public Function Endianness_ToStr(e As EEndianness) As String
     End Select
     Endianness_ToStr = s
 End Function
-
-Public Function Max(V1, V2)
-    If V1 > V2 Then Max = V1 Else Max = V2
-End Function
-
-Public Function Min(V1, V2)
-    If V1 < V2 Then Min = V1 Else Min = V2
-End Function
-
+'
+'Public Function Max(V1, V2)
+'    If V1 > V2 Then Max = V1 Else Max = V2
+'End Function
+'
+'Public Function Min(V1, V2)
+'    If V1 < V2 Then Min = V1 Else Min = V2
+'End Function
+'

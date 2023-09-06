@@ -1,16 +1,15 @@
 VERSION 5.00
-Begin VB.Form Form2 
-   Caption         =   "Form1"
-   ClientHeight    =   7260
+Begin VB.Form FrmPicViewer 
+   Caption         =   "PicViewer"
+   ClientHeight    =   7215
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   9915
+   ClientWidth     =   10095
    LinkTopic       =   "Form1"
-   ScaleHeight     =   7260
-   ScaleWidth      =   9915
+   ScaleHeight     =   7215
+   ScaleWidth      =   10095
    StartUpPosition =   3  'Windows-Standard
    Begin VB.PictureBox Picture1 
-      AutoSize        =   -1  'True
       Height          =   7095
       Left            =   0
       ScaleHeight     =   7035
@@ -20,7 +19,7 @@ Begin VB.Form Form2
       Width           =   9975
    End
 End
-Attribute VB_Name = "Form2"
+Attribute VB_Name = "FrmPicViewer"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -36,4 +35,10 @@ End Sub
 
 Public Sub ShowPicture(aFileName As String)
     Set Picture1.Picture = m_Pic.LoadPicturePlus(aFileName)
+End Sub
+
+Private Sub Picture1_Resize()
+    Me.ScaleHeight = Picture1.ScaleHeight
+    Me.ScaleWidth = Picture1.ScaleWidth
+    'Me.Move Me.Left, Me.Top, Picture1.ScaleHeight
 End Sub

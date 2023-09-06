@@ -130,6 +130,8 @@ Private m_IFFile As TaggedImageFile
 
 Private Sub Form_Load()
     
+    Me.Caption = Me.Caption & " v" & App.Major & "." & App.Minor & "." & App.Revision
+    
     Dim p   As String:  p = App.Path & "\Resources\Exif.org\examples\"
     Dim p1  As String: p1 = p & "IntelLittleEndian\"
     Dim p2  As String: p2 = p & "MotorolaBigEndian\"
@@ -155,7 +157,7 @@ Private Sub Form_Load()
         .AddItem p2 & "nikon-e950.jpg"    'JFIF with Exif-data
         .AddItem p2 & "ricoh-rdc5300.jpg"
         .AddItem p2 & "sony-d700.jpg"
-        .ListIndex = 16
+        .ListIndex = 0 '16
     End With
     'CBFileName.ListIndex = 0
 End Sub
@@ -178,9 +180,9 @@ End Sub
 
 Private Sub BtnRead_Click()
     TBExifData.Text = ""
-    Dim pfn As String
-    pfn = CBFileName.Text
-    Set m_IFFile = MNew.TaggedImageFile(pfn)
+    Dim PFN As String
+    PFN = CBFileName.Text
+    Set m_IFFile = MNew.TaggedImageFile(PFN)
     If m_IFFile.Read Then
         TBExifData.Text = m_IFFile.ToStr
     Else
@@ -195,13 +197,17 @@ Private Sub CBFileName_OLEDragDrop(Data As DataObject, Effect As Long, Button As
     OnOLEDragDrop Data, Effect, Button, Shift, X, Y
 End Sub
 
+Private Sub Form_Unload(Cancel As Integer)
+    Unload FrmPicViewer
+End Sub
+
 Private Sub TBExifData_DblClick()
     CBFileName_DblClick
 End Sub
 
 Private Sub CBFileName_DblClick()
-    Form2.Show
-    Form2.ShowPicture CBFileName.Text
+    FrmPicViewer.Show
+    FrmPicViewer.ShowPicture CBFileName.Text
 End Sub
 
 Private Sub TBExifData_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
