@@ -5,7 +5,7 @@ Begin VB.Form FrmMain
    ClientLeft      =   60
    ClientTop       =   450
    ClientWidth     =   12975
-   Icon            =   "Form1.frx":0000
+   Icon            =   "FMain.frx":0000
    LinkTopic       =   "Form1"
    OLEDropMode     =   1  'Manuell
    ScaleHeight     =   7695
@@ -21,9 +21,9 @@ Begin VB.Form FrmMain
    End
    Begin VB.ComboBox CBFileName 
       Height          =   315
-      ItemData        =   "Form1.frx":1782
+      ItemData        =   "FMain.frx":1782
       Left            =   1110
-      List            =   "Form1.frx":1784
+      List            =   "FMain.frx":1784
       TabIndex        =   2
       ToolTipText     =   "Select or dragdrop file here"
       Top             =   90

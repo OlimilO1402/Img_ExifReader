@@ -5,6 +5,7 @@ Begin VB.Form FPicViewer
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   10095
+   Icon            =   "FPicViewer.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   7215
    ScaleWidth      =   10095
