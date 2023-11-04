@@ -57,7 +57,7 @@ Try: On Error GoTo Finally
         End If
     End If
     
-    Read = True
+    'Read = True
 Finally:
     ebr.CClose
     If Err <> 0 Then ErrHandler "Read", """" & m_FileName & """" '& vbclrf

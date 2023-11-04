@@ -1,5 +1,5 @@
 VERSION 5.00
-Begin VB.Form FrmMain 
+Begin VB.Form FMain 
    Caption         =   "Exxifer"
    ClientHeight    =   7695
    ClientLeft      =   60
@@ -50,7 +50,7 @@ Begin VB.Form FrmMain
       Width           =   7815
    End
 End
-Attribute VB_Name = "FrmMain"
+Attribute VB_Name = "FMain"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -137,6 +137,8 @@ Private Sub Form_Load()
     Dim p2  As String: p2 = p & "MotorolaBigEndian\"
     
     With CBFileName
+        .AddItem p & "JFIF\Grafiti.jpg"
+        .AddItem p & "JFIF\IMG_6015.jpeg"
         .AddItem p1 & "canon-ixus.jpg"
         .AddItem p1 & "canon-powershota5.jpg"
         .AddItem p1 & "Canon-PowerShotA40.jpg"
@@ -198,7 +200,7 @@ Private Sub CBFileName_OLEDragDrop(Data As DataObject, Effect As Long, Button As
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
-    Unload FrmPicViewer
+    Unload FPicViewer
 End Sub
 
 Private Sub TBExifData_DblClick()
@@ -206,8 +208,8 @@ Private Sub TBExifData_DblClick()
 End Sub
 
 Private Sub CBFileName_DblClick()
-    FrmPicViewer.Show
-    FrmPicViewer.ShowPicture CBFileName.Text
+    FPicViewer.Show
+    FPicViewer.ShowPicture CBFileName.Text
 End Sub
 
 Private Sub TBExifData_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
